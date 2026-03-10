@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Опросник</title>
+    <link rel="stylesheet" href="/static/css/survey.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Опрос</h1>
+        <form id="surveyForm">
+            <!-- Блок с полом -->
+            <div class="form-group">
+                <label>Пол:</label>
+                <div class="gender-buttons">
+                    <button type="button" class="gender-btn" data-gender="male">Мужской</button>
+                    <button type="button" class="gender-btn" data-gender="female">Женский</button>
+                </div>
+                <div class="error" id="genderError"></div>
+            </div>
+
+            <!-- Блок с возрастом -->
+            <div class="form-group">
+                <label for="age">Возраст:</label>
+                <input type="number" id="age" min="1" max="120" placeholder="Введите возраст">
+                <div class="error" id="ageError"></div>
+            </div>
+
+            <!-- Вопросы с оценкой -->
+            <div class="form-group">
+                <label>Оцените от 1 до 5:</label>
+                <div id="questions"></div>
+            </div>
+
+            <button type="submit" id="submitBtn">Отправить</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script src="/static/js/survey.js"></script>
+</body>
+</html>

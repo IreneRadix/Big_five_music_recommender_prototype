@@ -3,6 +3,7 @@ from flask_cors import CORS
 from auth import auth_bp
 from tracks import tracks_bp
 from favorites import favorites_bp
+from survey import survey_bp
 import os
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
@@ -17,6 +18,7 @@ CORS(app)
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(tracks_bp, url_prefix='/api')
 app.register_blueprint(favorites_bp, url_prefix='/api')
+app.register_blueprint(survey_bp)
 
 
 @app.route("/feed/<user_name>")
@@ -32,6 +34,14 @@ def login():
     if request.method == "POST":
         username = request['username']
         return redirect(url_for('feed', user_name = username))
+    
+
+@app.route("/register")
+def register():
+    return render_template('register.html')
+    
+
+
 
 
 

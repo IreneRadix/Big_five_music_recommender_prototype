@@ -14,8 +14,9 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     });
     const data = await res.json();
     if (res.ok) {
-        alert('Регистрация успешна, теперь войдите');
-        window.location.href = '/login.html';
+        alert('Регистрация успешна, пройдите опрос');
+        window.location.href = '/survey/' + username ;
+        //window.location.href = '/login.html';
     } else {
         alert(data.error);
     }
