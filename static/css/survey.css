@@ -11,6 +11,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    padding: 20px;
 }
 
 .container {
@@ -19,17 +20,53 @@ body {
     padding: 30px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
 }
 
 h1 {
     text-align: center;
     color: #333;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+}
+
+/* Прогресс бар */
+.progress-container {
+    width: 100%;
+    height: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-text {
+    text-align: center;
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+/* Фиксированная секция с полом и возрастом */
+.fixed-section {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
 }
 
 label {
@@ -89,38 +126,55 @@ input[type="number"].error {
     border-color: #dc3545;
 }
 
+/* Секция с вопросами */
+.questions-section {
+    min-height: 400px;
+    margin-bottom: 20px;
+}
+
 /* Стили для вопросов */
 .question-item {
     background-color: #f9f9f9;
-    border-radius: 5px;
-    padding: 15px;
+    border-radius: 8px;
+    padding: 20px;
     margin-bottom: 15px;
+    border-left: 4px solid #007bff;
+    transition: transform 0.2s;
+}
+
+.question-item:hover {
+    transform: translateX(5px);
 }
 
 .question-text {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     color: #333;
+    font-size: 16px;
+    line-height: 1.4;
 }
 
 .rating {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .rating-btn {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
     border: 2px solid #ddd;
-    border-radius: 5px;
+    border-radius: 8px;
     background-color: white;
     cursor: pointer;
     font-size: 18px;
-    transition: all 0.3s;
+    font-weight: bold;
+    transition: all 0.2s;
 }
 
 .rating-btn:hover {
-    background-color: #f0f0f0;
+    background-color: #e9ecef;
+    transform: scale(1.05);
 }
 
 .rating-btn.selected {
@@ -133,34 +187,69 @@ input[type="number"].error {
     background-color: #218838;
 }
 
+/* Навигационные кнопки */
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.nav-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.nav-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.nav-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.page-indicator {
+    font-size: 16px;
+    color: #666;
+    font-weight: bold;
+}
+
+/* Кнопка отправки */
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;
+}
+
+.submit-btn:hover {
+    background-color: #218838;
+}
+
+.submit-btn.hidden {
+    display: none;
+}
+
 /* Стили для ошибок */
 .error {
     color: #dc3545;
     font-size: 14px;
     margin-top: 5px;
     min-height: 20px;
-}
-
-/* Стили для кнопки отправки */
-#submitBtn {
-    width: 100%;
-    padding: 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-#submitBtn:hover {
-    background-color: #0056b3;
-}
-
-#submitBtn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
 }
 
 /* Стили для результата */
@@ -182,4 +271,46 @@ input[type="number"].error {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.question-item {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .rating {
+        gap: 5px;
+    }
+    
+    .rating-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .nav-btn {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+    
+    .gender-buttons {
+        flex-direction: column;
+    }
 }

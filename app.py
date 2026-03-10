@@ -41,10 +41,6 @@ def register():
     return render_template('register.html')
     
 
-
-
-
-
 @app.route("/")
 def re_route():
     return redirect(url_for('login'))

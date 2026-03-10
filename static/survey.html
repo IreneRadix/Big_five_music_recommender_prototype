@@ -3,41 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Опросник</title>
-    <link rel="stylesheet" href="/static/css/survey.css">
+    <title>Опросник с пагинацией</title>
+    <link rel="stylesheet" href="\static\css\survey.css">
 </head>
 <body>
     <div class="container">
         <h1>Опрос</h1>
+        
+        <!-- Прогресс бар -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText">0/44 вопросов</div>
+
         <form id="surveyForm">
-            <!-- Блок с полом -->
-            <div class="form-group">
-                <label>Пол:</label>
-                <div class="gender-buttons">
-                    <button type="button" class="gender-btn" data-gender="male">Мужской</button>
-                    <button type="button" class="gender-btn" data-gender="female">Женский</button>
+            <!-- Блок с полом и возрастом (всегда видимый) -->
+            <div class="fixed-section">
+                <div class="form-group">
+                    <label>Пол:</label>
+                    <div class="gender-buttons">
+                        <button type="button" class="gender-btn" data-gender="male">Мужской</button>
+                        <button type="button" class="gender-btn" data-gender="female">Женский</button>
+                    </div>
+                    <div class="error" id="genderError"></div>
                 </div>
-                <div class="error" id="genderError"></div>
+
+                <div class="form-group">
+                    <label for="age">Возраст:</label>
+                    <input type="number" id="age" min="1" max="120" placeholder="Введите возраст">
+                    <div class="error" id="ageError"></div>
+                </div>
             </div>
 
-            <!-- Блок с возрастом -->
-            <div class="form-group">
-                <label for="age">Возраст:</label>
-                <input type="number" id="age" min="1" max="120" placeholder="Введите возраст">
-                <div class="error" id="ageError"></div>
+            <!-- Контейнер для текущей страницы вопросов -->
+            <div class="questions-section">
+                <div id="questionsContainer"></div>
             </div>
 
-            <!-- Вопросы с оценкой -->
-            <div class="form-group">
-                <label>Оцените от 1 до 5:</label>
-                <div id="questions"></div>
+            <!-- Навигация -->
+            <div class="navigation-buttons">
+                <button type="button" id="prevBtn" class="nav-btn" disabled>← Назад</button>
+                <span class="page-indicator" id="pageIndicator">Страница 1/11</span>
+                <button type="button" id="nextBtn" class="nav-btn">Далее →</button>
             </div>
 
-            <button type="submit" id="submitBtn">Отправить</button>
+            <!-- Кнопка отправки (изначально скрыта) -->
+            <button type="submit" id="submitBtn" class="submit-btn hidden">Отправить ответы</button>
         </form>
+        
         <div id="result"></div>
     </div>
 
-    <script src="/static/js/survey.js"></script>
+    <script src="\static\js\survey.js"></script>
 </body>
 </html>

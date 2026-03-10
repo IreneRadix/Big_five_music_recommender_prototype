@@ -16,6 +16,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     if (res.ok) {
         alert('Регистрация успешна, пройдите опрос');
         window.location.href = '/survey/' + username ;
+        localStorage.setItem('user_name', username);
         //window.location.href = '/login.html';
     } else {
         alert(data.error);
@@ -37,6 +38,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     if (res.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user_id', data.user_id);
+        localStorage.setItem('user_name', username);
         window.location.href = '/feed/' + username;
     } else {
         alert(data.error);
