@@ -1,0 +1,12 @@
+import json
+# Пример данных в разных форматах
+data_dict = {"remixdark_color_scheme":"0","remixcolor_scheme_mode":"light","tmr_lvid":"df43d2f54f1171fc59360e84afcede89","tmr_lvidTS":"1610364808843","remixscreen_width":"1536","remixscreen_height":"864","remixscreen_dpr":"1.25","remixlang":"0","remixstid":"1285477147_xPM68cKNESx2Wa4lKAnWrywXyixDRSxlGRIt8fRMyXH","remixstlid":"9096351687218813078_fWgP7TvbkWRWbOeto24A1aX2NRfooOJ2leETxBqWj6L","remixsf":"1","_ym_uid":"1759694492928170652","_ym_d":"1759694492","video:added_videos_moved_web_hint_views_count":"2","remixmdevice":"1536/864/1.25/!!-!!!!!!!!/1536","remixscreen_orient":"1","remixscreen_depth":"32","remixdt":"0","remixgp":"35fe4e99f3bba2a515b164ad52a7bee6","ma__id":"3c889d64-6bb2-4cfe-9a9e-14747ab46836%3B1772881406","remixrefkey":"efce822750ea704d92","remixnttpid":"vk1.a.xajpQ8OMNAtJDB829LGSTBXAKKZC-heKbtr18n8_tMUEqrD_jKpaERzh3BbmhdiLVvQ5zsA2Fy4E3LmM7F5f82iLm8yyUSiEFaGsc_UC9vnb24OEWhFQ5UN5iznIzbnJsgr9MvrhkUZBx_uVb8pZ_Z0D7HdNOnLvmdrOuQJ3FpF88t9uSf8R7zJtiCBpWySv%7Cvk1.a.MQ7mJqZhlR8sEn33TXc_1NzMzO51p0m2aIVUubeZA3etgH5Nl6sdYrW2qyIUSE9QBlxnNCxsQJDO3VwOHWVT99bsAxKa3cnh9lrrPo3ChNL78M4luWSvJDtVBtqKobBIigrfiD_La7ueoGaKJ8Koh16Bz5mnGOSrazIpPjEWKGaEt27ME2HwmFQDeUmdPHMZ","remixscreen_winzoom":"1","domain_sid":"vWg0cgRRUpmo-xlNOCjaZ%3A1773314658956","remixmaudio":"null","remixage18":"1","remixua":"43%7C-1%7C215%7C2934770415","ma__383126333_nsid":"vk1.a.2dhK2C3dc4H-nkIPuIOhu1I2SOWT70801sJcV5WzFD2Inpr1bMSw6xT3NIJZck1d2gAsy1kOT2S-20xyRt3D3AoAT1WDX5pSZsGK11LZMGxB2wCnnMhsUDbeXV0Q7fs7NF6kC9q0304oP62Oaqupp8lC7t-QxTswIB5XWquKCDju_Y6pvomxPtHhNf7ghrdC","ma__383126333_nttpid":"vk1.a.xajpQ8OMNAtJDB829LGSTBXAKKZC-heKbtr18n8_tMUEqrD_jKpaERzh3BbmhdiLVvQ5zsA2Fy4E3LmM7F5f82iLm8yyUSiEFaGsc_UC9vnb24OEWhFQ5UN5iznIzbnJsgr9MvrhkUZBx_uVb8pZ_Z0D7HdNOnLvmdrOuQJ3FpF88t9uSf8R7zJtiCBpWySv%7Cvk1.a.MQ7mJqZhlR8sEn33TXc_1NzMzO51p0m2aIVUubeZA3etgH5Nl6sdYrW2qyIUSE9QBlxnNCxsQJDO3VwOHWVT99bsAxKa3cnh9lrrPo3ChNL78M4luWSvJDtVBtqKobBIigrfiD_La7ueoGaKJ8Koh16Bz5mnGOSrazIpPjEWKGaEt27ME2HwmFQDeUmdPHMZ","remixpuad":"Kv9fFMb-migH2B0UokYgyathinyQSxOhTk_bfpMjvk4","remixcurr_audio":"null","remixseenads":"2","tmr_detect":"0%7C1773393162615"}
+
+cookies = []
+for key, value in data_dict.items():
+    cookies.append({
+        'name': key,
+        'value': value
+    })
+
+print("cookies =", json.dumps(cookies, indent=4))

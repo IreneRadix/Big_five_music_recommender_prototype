@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+
 def get_db_connection():
     """Создает подключение к базе данных PostgreSQL"""
     try:
@@ -52,6 +53,45 @@ def init_db():
                 track_id INTEGER REFERENCES tracks(id) ON DELETE CASCADE,
                 added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (user_id, track_id)
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_features (
+                user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                
+                -- Демографические данные
+                gender VARCHAR(6),              -- пол (male, female)
+                age INTEGER,  -- возраст (ограничение от 13 до 120)
+                location VARCHAR(100),            -- местоположение (город/страна)
+                
+                -- Big Five личностные характеристики (шкала от 1 до 10)
+                -- Экстраверсия (общительность, энергичность)
+                extraversion INTEGER,
+                
+                -- Добросовестность/Организованность (самодисциплина, организованность)
+                conscientiousness  INTEGER,
+                
+                -- Доброжелательность/Дружелюбие (доверие, альтруизм)
+                agreeableness  INTEGER,
+                
+                -- Нейротизм (эмоциональная нестабильность, тревожность)
+                neuroticism  INTEGER,
+                
+                -- Открытость новому опыту (любопытство, креативность)
+                openness  INTEGER,
+                
+                
+                -- Проверка, что хотя бы одно поле заполнено (необязательно)
+                CONSTRAINT has_data CHECK (
+                    gender IS NOT NULL OR 
+                    age IS NOT NULL OR 
+                    extraversion IS NOT NULL OR 
+                    conscientiousness IS NOT NULL OR 
+                    agreeableness IS NOT NULL OR 
+                    neuroticism IS NOT NULL OR 
+                    openness IS NOT NULL
+                )
             )
         """)
         

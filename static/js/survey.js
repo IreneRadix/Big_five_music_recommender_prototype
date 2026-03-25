@@ -15,7 +15,7 @@ class PaginatedSurveyComponent {
         this.resultDiv = document.getElementById('result');
         
         // Генерация 44 вопросов
-        this.questions = this.generateQuestions(4);
+        this.questions = this.generateQuestions(12);
         
         // Настройки пагинации
         this.questionsPerPage = 4;
@@ -262,23 +262,19 @@ class PaginatedSurveyComponent {
             group5: 0
         };
         
-        // Подсчет сумм по каждой группе
-        for (let [groupName, indices] of Object.entries(this.questionGroups)) {
-            let sum = 0;
-            let answeredCount = 0;
-            
-            for (let index of indices) {
-                if (this.userData.answers[index]) {
-                    sum += this.userData.answers[index];
-                    answeredCount++;
-                }
-            }
-            
-            // Сохраняем сумму только если все вопросы в группе отвечены
-            if (answeredCount === indices.length) {
-                this.groupSums[groupName] = sum;
+       for (let [groupName, indices] of Object.entries(this.questionGroups)) {
+        let sum = 0;
+        
+        for (let index of indices) {
+            if (this.userData.answers[index]) {
+                sum += this.userData.answers[index];
             }
         }
+        
+       
+        this.groupSums[groupName] = sum;
+    }
+
     }
     
     checkCurrentPageCompletion() {
@@ -398,7 +394,8 @@ class PaginatedSurveyComponent {
             const dataToSend = {
                 personal: {
                     gender: this.userData.gender,
-                    age: this.userData.age
+                    age: this.userData.age,
+                    id : localStorage.getItem('user_id')
                 },
                 answers: this.userData.answers,
                 groupSums: this.groupSums,
@@ -418,7 +415,7 @@ class PaginatedSurveyComponent {
                 // Показываем пользователю результаты по группам
                 //this.showGroupResults();
                 //this.resetForm();
-                window.location.href = '/feed/' + localStorage.getItem('user_name') ;
+                window.location.href = '/login';
             } else {
                 throw new Error('Ошибка сервера');
             }

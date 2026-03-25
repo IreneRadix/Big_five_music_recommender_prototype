@@ -7,19 +7,30 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
-    const res = await fetch(`${API_BASE}/register`, {
+    const registerRes = await fetch(`${API_BASE}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password })
     });
-    const data = await res.json();
-    if (res.ok) {
-        alert('Регистрация успешна, пройдите опрос');
-        window.location.href = '/survey/' + username ;
-        localStorage.setItem('user_name', username);
-        //window.location.href = '/login.html';
+    const registerData = await registerRes.json();
+    
+    if (registerRes.ok) {
+        
+            localStorage.setItem('user_id', registerData.user_id);
+            localStorage.setItem('user_name', username);
+            
+            // Убедимся, что данные сохранились
+            console.log('Сохранено в localStorage:', {
+   
+                user_id: registerData.user_id,
+
+            });
+            
+            alert('Регистрация успешна, пройдите опрос');
+            window.location.href = '/survey/' + username;
+       
     } else {
-        alert(data.error);
+        alert(registerData.error);
     }
 });
 
@@ -38,7 +49,6 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     if (res.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('user_name', username);
         window.location.href = '/feed/' + username;
     } else {
         alert(data.error);

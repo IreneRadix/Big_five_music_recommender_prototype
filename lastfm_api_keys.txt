@@ -1,0 +1,4 @@
+Application name	thesis
+API key	f2dbcbc21230dd740b71050977e70235
+Shared secret	ed63f1d3720580f9c4ba7cb7574eca2e
+Registered to	IreneRadix
