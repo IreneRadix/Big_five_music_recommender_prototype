@@ -32,12 +32,17 @@ def login():
     if request.method == "GET":
         return render_template('login.html')
     if request.method == "POST":
+        username = request.form.get('username')
         return redirect(url_for('feed', user_name = username))
     
 
 @app.route("/register")
 def register():
     return render_template('register.html')
+
+@app.route("/auth_choice/<username>")
+def auth_choice(username):
+    return  send_from_directory('static', "auth_choice.html")
     
 
 @app.route("/")

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Выбор способа входа</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <h2>Добро пожаловать!</h2>
+    <p>Выберите способ входа:</p>
+
+    <button id="surveyBtn" class="btn">Пройти психологический тест</button>
+
+    <hr>
+
+    <h3>Или авторизуйтесь через VK</h3>
+    <form id="vkForm">
+        <label for="vkUrl">Ссылка на ваш профиль VK (например, https://vk.com/id12345):</label>
+        <input type="url" id="vkUrl" name="vkUrl" required>
+        
+        <label>
+            <input type="checkbox" id="consent" required>
+            Я согласен(на) на обработку моих персональных данных: аватары и список друзей будут использованы для формирования рекомендаций.
+        </label>
+
+        <button type="submit">Войти через VK</button>
+    </form>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Получаем username из localStorage
+        const username = localStorage.getItem('username');
+
+        // Добавляем обработчик для кнопки опроса
+        const surveyBtn = document.getElementById('surveyBtn');
+        if (surveyBtn) {
+            surveyBtn.addEventListener('click', function() {
+                if (username) {
+                    window.location.href = `/survey/${username}`;
+                } else {
+                    alert('Пожалуйста, войдите в систему');
+                    window.location.href = '/login';
+                }
+            });
+        }
+        
+    </script>
+</body>
+</html>

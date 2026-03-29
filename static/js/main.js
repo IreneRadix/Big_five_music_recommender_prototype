@@ -18,6 +18,7 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
         
             localStorage.setItem('user_id', registerData.user_id);
             localStorage.setItem('user_name', username);
+            localStorage.setItem('username', username);
             
             // Убедимся, что данные сохранились
             console.log('Сохранено в localStorage:', {
@@ -26,8 +27,9 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
 
             });
             
-            alert('Регистрация успешна, пройдите опрос');
-            window.location.href = '/survey/' + username;
+            //alert('Регистрация успешна, пройдите опрос');
+            
+            window.location.href = '/auth_choice/' + username;//'/survey/' + username;
        
     } else {
         alert(registerData.error);
@@ -116,3 +118,30 @@ if (window.location.pathname === '/' || window.location.pathname === '/index.htm
 if (window.location.pathname === '/favorites.html') {
     loadFavorites();
 }
+
+// выбор авторизации
+document.getElementById('vkForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const vkUrl = document.getElementById('vkUrl').value;
+    const consent = document.getElementById('consent').checked;
+
+    if (!consent) {
+        alert('Необходимо дать согласие на обработку данных');
+        return;
+    }
+
+    const res = await fetch(`${API_BASE}/vk_parse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vk_url: vkUrl, consent: consent })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user_id', data.user_id);
+        window.location.href = '/';
+    } else {
+        alert(data.error || 'Ошибка при обработке');
+    }
+});

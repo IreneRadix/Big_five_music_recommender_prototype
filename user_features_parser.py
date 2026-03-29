@@ -386,7 +386,7 @@ def get_friends(link, driver):
                 
                 # Проверяем, изменилось ли количество
                 new_elements = driver.find_elements(By.CSS_SELECTOR, "a.vkitLink__link--b0dQw")
-                if len(new_elements) == last_count:
+                if len(new_elements) == last_count or len(new_elements)> 3000:
                     break
         else:
             last_count = len(friends)
@@ -411,7 +411,7 @@ features = {'user_id': [],'pictures': [], 'friends': [], 'likes_pics_med': []} #
 #print(vk_user_ids)
 count = 0
 vk_user_id = str(vk_user_ids[1][0])
-for item in vk_user_ids[11:]:
+for item in vk_user_ids:
     if count % 3==0:
         file_path = 'user_data.pkl'
         with open(file_path, 'wb') as file:
@@ -419,8 +419,9 @@ for item in vk_user_ids[11:]:
     count+=1
     try:
         vk_user_id = str(item[0])
-        if vk_user_id in  ['355846758', '143323595', '1084970499', '56426269', '1021422385', '561344419', '736750737', '766130229', '680995689', '378118909', '1021139334']:
+        if vk_user_id in  ['81497874', '99839399', '128579620', '352807988', '376995746', '393467750', '488823322', '491119963', '506242790', '515869754', '518142219', '521411927', '559593247', '560263909', '600431061', '627846415', '628658916', '730394404', '730654420', '737472328', '739428407', '739896331', '5898', '10054150', '12350095', '50331449', '51503353','1', '166220527', '166845152', '171754634', '180854663', '186806131', '194118736', '209865523', '226492618', '230388129', '241869361', '269487052', '279244851', '285581821', '297922641', '311022827', '319387122', '320332176','355846758', '143323595', '1084970499', '56426269', '1021422385', '561344419', '736750737', '766130229', '680995689', '378118909', '1021139334']:
             continue
+
         user_liks = {}
         user_liks['own_posts'] = "https://vk.com/wall" + vk_user_id + "?owner=1"
         user_liks['all_posts'] = "https://vk.com/wall" + vk_user_id
