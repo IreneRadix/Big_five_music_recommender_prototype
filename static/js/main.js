@@ -119,29 +119,23 @@ if (window.location.pathname === '/favorites.html') {
     loadFavorites();
 }
 
-// выбор авторизации
+// Добавьте в конец main.js
 document.getElementById('vkForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const vkUrl = document.getElementById('vkUrl').value;
     const consent = document.getElementById('consent').checked;
-
+    const parseResult = document.getElementById('parseResult');
+    
     if (!consent) {
         alert('Необходимо дать согласие на обработку данных');
         return;
     }
-
-    const res = await fetch(`${API_BASE}/vk_parse`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vk_url: vkUrl, consent: consent })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user_id', data.user_id);
-        window.location.href = '/';
-    } else {
-        alert(data.error || 'Ошибка при обработке');
+    
+    // Проверяем, был ли выполнен парсинг
+    if (!parseResult.style.display === 'block' || !parseResult.innerHTML.includes('Успешно')) {
+        alert('Сначала выполните парсинг данных VK');
+        return;
     }
+    
+    // Перенаправляем на главную
+    window.location.href = '/';
 });
