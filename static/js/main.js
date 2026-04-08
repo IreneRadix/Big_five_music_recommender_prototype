@@ -139,3 +139,185 @@ document.getElementById('vkForm')?.addEventListener('submit', async (e) => {
     // Перенаправляем на главную
     window.location.href = '/';
 });
+
+
+
+function getCurrentUsername() {
+    // Сначала пробуем получить из URL (для страницы /feed/username)
+    const path = window.location.pathname;
+    const match = path.match(/\/feed\/(.+)/);
+    if (match && match[1]) {
+        return match[1];
+    }
+    
+    // Если нет, берем из localStorage
+    return localStorage.getItem('username') || localStorage.getItem('user_name');
+}
+
+// Загрузка рекомендаций
+async function loadRecommendations() {
+    const username = getCurrentUsername();
+    
+    if (!username) {
+        console.log('Пользователь не авторизован');
+        loadDefaultRecommendations();
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        // Получаем статистику пользователя
+        const statsResponse = await fetch(`${API_BASE}/user_stats/${username}`);
+        const stats = await statsResponse.json();
+        
+        // Получаем рекомендации
+        const response = await fetch(`${API_BASE}/recommendations/${username}?limit=20`);
+        const data = await response.json();
+        
+        if (data.success) {
+            displayRecommendations(data.recommendations, stats);
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        loadDefaultRecommendations();
+    } finally {
+        hideLoading();
+    }
+}
+
+function displayRecommendations(tracks, stats) {
+    const container = document.getElementById('recommendations');
+    if (!container) return;
+    
+    if (!tracks || tracks.length === 0) {
+        container.innerHTML = `
+            <div class="no-recommendations">
+                😔 Пока нет рекомендаций.<br>
+                Добавьте несколько треков в избранное, и мы подберем для вас музыку!
+            </div>
+        `;
+        return;
+    }
+    
+    // Показываем информацию о пользователе
+    const userInfo = stats && stats.favorites_count !== undefined 
+        ? `<div class="user-info">
+            📊 У вас ${stats.favorites_count} ${getFavoritesWord(stats.favorites_count)} в избранном
+           </div>`
+        : '';
+    
+    container.innerHTML = userInfo + tracks.map((track, index) => `
+        <div class="track-card">
+            <div class="track-number">${index + 1}</div>
+            <img src="${track.cover_url || '/static/default_cover.jpg'}" 
+                 alt="cover" 
+                 class="track-cover"
+                 onerror="this.src='/static/default_cover.jpg'">
+            <div class="track-info">
+                <div class="track-title">${escapeHtml(track.title)}</div>
+                <div class="track-artist">${escapeHtml(track.artist)}</div>
+                ${track.genre ? `<div class="track-genre">🎵 ${track.genre}</div>` : ''}
+                <div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>
+            </div>
+            <div class="track-actions">
+                <button onclick="addToFavorites(${track.id}, this)" class="fav-btn">
+                    ❤️ В избранное
+                </button>
+                <audio controls src="${track.file_url}" class="audio-player" preload="none"></audio>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getFavoritesWord(count) {
+    if (count % 10 === 1 && count % 100 !== 11) return 'трек';
+    if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'трека';
+    return 'треков';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function addToFavorites(trackId, button) {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        alert('Войдите, чтобы добавить в избранное');
+        return;
+    }
+    
+    const originalText = button.textContent;
+    button.textContent = '⏳ ...';
+    button.disabled = true;
+    
+    try {
+        const res = await fetch(`${API_BASE}/favorites`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ track_id: trackId })
+        });
+        
+        if (res.ok) {
+            button.innerHTML = '✅ В избранном';
+            setTimeout(() => {
+                button.innerHTML = '❤️ В избранное';
+            }, 2000);
+            
+            // Обновляем рекомендации
+            setTimeout(() => {
+                loadRecommendations();
+            }, 1000);
+        } else {
+            const data = await res.json();
+            alert(data.error || 'Ошибка');
+            button.textContent = originalText;
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка соединения');
+        button.textContent = originalText;
+        button.disabled = false;
+    }
+}
+
+function loadDefaultRecommendations() {
+    fetch(`${API_BASE}/recommendations`)
+        .then(res => res.json())
+        .then(tracks => {
+            if (Array.isArray(tracks)) {
+                const tracksWithReason = tracks.map(track => ({
+                    ...track,
+                    recommendation_reason: 'Популярный трек'
+                }));
+                displayRecommendations(tracksWithReason, { favorites_count: 0 });
+            }
+        })
+        .catch(error => console.error('Ошибка:', error));
+}
+
+function showLoading() {
+    const container = document.getElementById('recommendations');
+    if (container) {
+        container.innerHTML = '<div class="loading">🎵 Анализируем ваш профиль и подбираем музыку...</div>';
+    }
+}
+
+function hideLoading() {
+    // Индикатор исчезнет при отображении рекомендаций
+}
+
+// Инициализация при загрузке страницы
+if (window.location.pathname === '/' || 
+    window.location.pathname.includes('/feed/')) {
+    document.addEventListener('DOMContentLoaded', loadRecommendations);
+}
