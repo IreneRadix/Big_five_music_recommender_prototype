@@ -2,7 +2,92 @@
 <html>
 <head>
     <title>Выбор способа входа</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .btn, .parse-btn, button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .parse-btn {
+            background-color: #2196F3;
+            margin-left: 10px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .vk-input-group {
+            margin: 20px 0;
+        }
+        .input-with-button {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .input-with-button input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .parse-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .parse-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
     <h2>Добро пожаловать!</h2>
@@ -13,36 +98,168 @@
     <hr>
 
     <h3>Или авторизуйтесь через VK</h3>
-    <form id="vkForm">
+    
+    <div class="vk-input-group">
         <label for="vkUrl">Ссылка на ваш профиль VK (например, https://vk.com/id12345):</label>
-        <input type="url" id="vkUrl" name="vkUrl" required>
-        
-        <label>
-            <input type="checkbox" id="consent" required>
-            Я согласен(на) на обработку моих персональных данных: аватары и список друзей будут использованы для формирования рекомендаций.
-        </label>
+        <div class="input-with-button">
+            <input type="url" id="vkUrl" name="vkUrl" placeholder="https://vk.com/id12345" required>
+            <button type="button" id="parseVkBtn" class="parse-btn">Парсить</button>
+        </div>
+    </div>
+    
+    <div id="parseStatus" class="parse-status" style="display: none;">
+        <div class="spinner"></div>
+        <span>Парсинг данных...</span>
+    </div>
+    
+    <div id="parseResult" class="parse-result" style="display: none;"></div>
+    
+    <label style="display: block; margin: 20px 0;">
+        <input type="checkbox" id="consent" required>
+        Я согласен(на) на обработку моих персональных данных: аватары и список друзей будут использованы для формирования рекомендаций.
+    </label>
 
-        <button type="submit">Войти через VK</button>
-    </form>
+    <button type="button" id="submitVkBtn" class="btn" disabled>Войти через VK</button>
+    
+    <br>
+    <a href="/login" class="back-link">← Вернуться к входу</a>
 
-    <script src="/js/main.js"></script>
     <script>
-        // Получаем username из localStorage
-        const username = localStorage.getItem('username');
-
-        // Добавляем обработчик для кнопки опроса
-        const surveyBtn = document.getElementById('surveyBtn');
-        if (surveyBtn) {
-            surveyBtn.addEventListener('click', function() {
-                if (username) {
-                    window.location.href = `/survey/${username}`;
-                } else {
-                    alert('Пожалуйста, войдите в систему');
-                    window.location.href = '/login';
-                }
-            });
+        // Получаем username из URL
+        const username = window.location.pathname.split('/').pop();
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('username', username);
+        localStorage.setItem('user_name', username);
+        
+        // Кнопка опроса
+        document.getElementById('surveyBtn').addEventListener('click', function() {
+            window.location.href = '/survey/' + username;
+        });
+        
+        // Элементы для парсинга
+        const parseBtn = document.getElementById('parseVkBtn');
+        const vkUrlInput = document.getElementById('vkUrl');
+        const parseStatus = document.getElementById('parseStatus');
+        const parseResult = document.getElementById('parseResult');
+        const submitBtn = document.getElementById('submitVkBtn');
+        const consentCheckbox = document.getElementById('consent');
+        
+        // Переменная для хранения данных парсинга
+        let parsedData = null;
+        
+        // Функция для проверки активности кнопки входа
+        function checkSubmitButton() {
+            if (consentCheckbox.checked && parsedData !== null) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
         }
         
+        // Обработчик кнопки парсинга
+        parseBtn.addEventListener('click', async function() {
+            const vkUrl = vkUrlInput.value.trim();
+            
+            if (!vkUrl) {
+                alert('Пожалуйста, введите ссылку на профиль VK');
+                return;
+            }
+            
+            // Показываем статус парсинга
+            parseStatus.style.display = 'flex';
+            parseResult.style.display = 'none';
+            parseBtn.disabled = true;
+            submitBtn.disabled = true;
+            parsedData = null;
+            
+            try {
+                console.log('Начинаем парсинг:', vkUrl);
+                
+                const response = await fetch('/api/vk_parse', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        vk_url: vkUrl,
+                        consent: consentCheckbox.checked 
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Ответ сервера:', data);
+                
+                if (response.ok && data.success) {
+                    parsedData = data.data;
+                    
+                    parseResult.innerHTML = `
+                        <div class="success">
+                            ✓ Данные успешно обработаны!
+                            <br>ID пользователя VK: ${data.data?.user_id || 'N/A'}
+                            <br>Найдено фото: ${data.data?.pictures || 0}
+                            <br>Друзей: ${data.data?.friends || 0}
+                            <br>Лайков от друзей: ${data.data?.likes_pics_med || 0}
+                        </div>
+                    `;
+                    parseResult.style.display = 'block';
+                    
+                    // Сохраняем данные в localStorage
+                    localStorage.setItem('vk_user_id', data.data?.user_id);
+                    localStorage.setItem('vk_pictures', data.data?.pictures);
+                    localStorage.setItem('vk_friends', data.data?.friends);
+                    localStorage.setItem('vk_likes_med', data.data?.likes_pics_med);
+                    
+                    checkSubmitButton();
+                } else {
+                    parseResult.innerHTML = `<div class="error">✗ Ошибка: ${data.error || 'Не удалось обработать данные'}</div>`;
+                    parseResult.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                parseResult.innerHTML = `<div class="error">✗ Ошибка соединения: ${error.message}</div>`;
+                parseResult.style.display = 'block';
+            } finally {
+                parseStatus.style.display = 'none';
+                parseBtn.disabled = false;
+            }
+        });
+        
+        // Отслеживаем изменение чекбокса
+        consentCheckbox.addEventListener('change', checkSubmitButton);
+        
+        // Обработчик кнопки входа - редирект на страницу логина
+        submitBtn.addEventListener('click', async function() {
+            if (!consentCheckbox.checked) {
+                alert('Необходимо дать согласие на обработку данных');
+                return;
+            }
+            
+            // Если парсинг еще не выполнен, запускаем его
+            if (parsedData === null) {
+                alert('Пожалуйста, нажмите кнопку "Парсить" для анализа вашего профиля VK');
+                return;
+            }
+            
+            // Отправляем данные на сервер для входа/регистрации
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Вход...';
+ 
+                    // Сохраняем токен и данные пользователя
+                    //localStorage.setItem('user_name', parsedData.username);
+                    
+                    // Редирект на страницу с логином (feed)
+                    window.location.href = '/feed/' + localStorage.getItem('username');
+
+            } catch (error) {
+                console.error('Ошибка входа:', error);
+                alert('Ошибка соединения при входе');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Войти через VK';
+                
+            }
+        });
     </script>
 </body>
 </html>

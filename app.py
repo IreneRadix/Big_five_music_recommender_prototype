@@ -4,6 +4,7 @@ from auth import auth_bp
 from tracks import tracks_bp
 from favorites import favorites_bp
 from survey import survey_bp
+from vk_parser_bp import vk_bp
 import os
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
@@ -19,6 +20,7 @@ app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(tracks_bp, url_prefix='/api')
 app.register_blueprint(favorites_bp, url_prefix='/api')
 app.register_blueprint(survey_bp)
+app.register_blueprint(vk_bp)
 
 
 @app.route("/feed/<user_name>")
