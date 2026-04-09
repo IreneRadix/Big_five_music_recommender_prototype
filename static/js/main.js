@@ -75,27 +75,302 @@ async function loadRecommendations() {
 }
 
 // Добавление в избранное
-async function addToFavorites(trackId) {
+async function addToFavorites(trackId, button) {
     const token = localStorage.getItem('token');
+    
     if (!token) {
         alert('Войдите, чтобы добавить в избранное');
         return;
     }
-    const res = await fetch(`${API_BASE}/favorites`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ track_id: trackId })
-    });
-    if (res.ok) {
-        alert('Добавлено в избранное');
-    } else {
-        const data = await res.json();
-        alert(data.error);
+    
+    const originalText = button.textContent;
+    button.textContent = '⏳ Добавление...';
+    button.disabled = true;
+    
+    try {
+        const res = await fetch(`${API_BASE}/favorites`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ track_id: trackId })
+        });
+        
+        if (res.ok) {
+            // Визуально отмечаем трек как добавленный
+            button.innerHTML = '✅ В избранном';
+            button.style.opacity = '0.6';
+            
+            // Находим карточку трека и добавляем анимацию удаления
+            const trackCard = button.closest('.track-card');
+            if (trackCard) {
+                trackCard.style.transition = 'all 0.3s ease';
+                trackCard.style.opacity = '0.5';
+                trackCard.style.transform = 'translateX(20px)';
+                
+                // Ждем анимацию, затем удаляем карточку
+                setTimeout(() => {
+                    trackCard.remove();
+                    
+                    // Обновляем нумерацию оставшихся треков
+                    updateTrackNumbers();
+                    
+                    // Показываем уведомление
+                    showNotification('Трек добавлен в избранное! Рекомендации обновлены');
+                    
+                    // Загружаем новый трек на место удаленного (без перезагрузки страницы)
+                    loadReplacementTrack();
+                }, 300);
+            } else {
+                // Если не нашли карточку, просто перезагружаем рекомендации
+                setTimeout(() => {
+                    loadRecommendations();
+                }, 500);
+            }
+        } else {
+            const data = await res.json();
+            alert(data.error || 'Ошибка при добавлении в избранное');
+            button.textContent = originalText;
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка соединения');
+        button.textContent = originalText;
+        button.disabled = false;
     }
 }
+
+// Функция для обновления нумерации треков
+function updateTrackNumbers() {
+    const trackCards = document.querySelectorAll('.track-card');
+    trackCards.forEach((card, index) => {
+        const numberDiv = card.querySelector('.track-number');
+        if (numberDiv) {
+            numberDiv.textContent = (index + 1).toString();
+        }
+    });
+}
+
+// Функция для загрузки одного трека на место удаленного
+async function loadReplacementTrack() {
+    const username = getCurrentUsername();
+    if (!username) return;
+    
+    try {
+        // Получаем текущие ID треков
+        const currentTrackIds = Array.from(document.querySelectorAll('.track-card'))
+            .map(card => parseInt(card.dataset.trackId))
+            .filter(id => !isNaN(id));
+        
+        // Запрашиваем новые рекомендации
+        const response = await fetch(`${API_BASE}/recommendations/${username}?limit=25`);
+        const data = await response.json();
+        
+        if (data.success && data.recommendations) {
+            // Находим трек, которого нет в текущем списке
+            const newTrack = data.recommendations.find(track => !currentTrackIds.includes(track.id));
+            
+            if (newTrack) {
+                // Добавляем новый трек в конец списка
+                appendTrackToEnd(newTrack, currentTrackIds.length + 1);
+                showNotification(`✨ Новый трек: ${newTrack.title} - ${newTrack.artist}`);
+            } else {
+                // Если нет новых треков, просто показываем сообщение
+                showNotification('🎵 Все рекомендации обновлены!', 'info');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки замены:', error);
+    }
+}
+
+// Функция для добавления трека в конец списка
+function appendTrackToEnd(track, newNumber) {
+    const container = document.getElementById('recommendations');
+    if (!container) return;
+    
+    // Находим контейнер с треками (не user-info)
+    const tracksContainer = container.querySelector('.recommendations-grid') || container;
+    
+    const trackHtml = `
+        <div class="track-card" data-track-id="${track.id}" style="animation: slideIn 0.5s ease;">
+            <div class="track-number">${newNumber}</div>
+            <img src="${track.cover_url || '/static/default_cover.jpg'}" 
+                 alt="cover" 
+                 class="track-cover"
+                 onerror="this.src='/static/default_cover.jpg'">
+            <div class="track-info">
+                <div class="track-title">${escapeHtml(track.title)}</div>
+                <div class="track-artist">${escapeHtml(track.artist)}</div>
+                ${track.genre ? `<div class="track-genre">🎵 ${track.genre}</div>` : ''}
+                <div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>
+            </div>
+            <div class="track-actions">
+                <button onclick="addToFavorites(${track.id}, this)" class="fav-btn">
+                    ❤️ В избранное
+                </button>
+                <audio controls src="${track.file_url}" class="audio-player" preload="none"></audio>
+            </div>
+        </div>
+    `;
+    
+    tracksContainer.insertAdjacentHTML('beforeend', trackHtml);
+    
+    // Добавляем анимацию
+    const newCard = tracksContainer.lastElementChild;
+    setTimeout(() => {
+        if (newCard) newCard.style.animation = '';
+    }, 500);
+}
+
+// Функция для показа уведомлений
+function showNotification(message, type = 'success') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#4caf50' : '#2196f3'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 1000;
+        animation: slideInRight 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Функция для получения текущего username из URL
+function getCurrentUsername() {
+    const path = window.location.pathname;
+    const match = path.match(/\/feed\/(.+)/);
+    if (match && match[1]) {
+        return match[1];
+    }
+    return localStorage.getItem('username') || localStorage.getItem('user_name');
+}
+
+// Обновите функцию displayRecommendations, добавив data-track-id
+function displayRecommendations(tracks, stats) {
+    const container = document.getElementById('recommendations');
+    if (!container) return;
+    
+    if (!tracks || tracks.length === 0) {
+        container.innerHTML = `
+            <div class="no-recommendations">
+                😔 Пока нет рекомендаций.<br>
+                Добавьте несколько треков в избранное, и мы подберем для вас музыку!
+            </div>
+        `;
+        return;
+    }
+    
+    // Показываем информацию о пользователе
+    const userInfo = stats && stats.favorites_count !== undefined 
+        ? `<div class="user-info-stats">
+            📊 У вас ${stats.favorites_count} ${getFavoritesWord(stats.favorites_count)} в избранном
+           </div>`
+        : '';
+    
+    container.innerHTML = userInfo + '<div class="recommendations-grid">';
+    
+    const gridContainer = container.querySelector('.recommendations-grid');
+    
+    tracks.forEach((track, index) => {
+        const trackCard = document.createElement('div');
+        trackCard.className = 'track-card';
+        trackCard.setAttribute('data-track-id', track.id);
+        trackCard.innerHTML = `
+            <div class="track-number">${index + 1}</div>
+            <img src="${track.cover_url || '/static/default_cover.jpg'}" 
+                 alt="cover" 
+                 class="track-cover"
+                 onerror="this.src='/static/default_cover.jpg'">
+            <div class="track-info">
+                <div class="track-title">${escapeHtml(track.title)}</div>
+                <div class="track-artist">${escapeHtml(track.artist)}</div>
+                ${track.genre ? `<div class="track-genre">🎵 ${track.genre}</div>` : ''}
+                <div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>
+            </div>
+            <div class="track-actions">
+                <button onclick="addToFavorites(${track.id}, this)" class="fav-btn">
+                    ❤️ В избранное
+                </button>
+                <audio controls src="${track.file_url}" class="audio-player" preload="none"></audio>
+            </div>
+        `;
+        gridContainer.appendChild(trackCard);
+    });
+    
+    container.innerHTML += '</div>';
+}
+
+// Добавьте CSS анимации в ваш HTML файл
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .recommendations-grid {
+        display: grid;
+        gap: 20px;
+    }
+    
+    .user-info-stats {
+        background: white;
+        border-radius: 15px;
+        padding: 15px 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        color: #764ba2;
+        font-weight: 500;
+    }
+`;
+document.head.appendChild(style);
 
 // Загрузка избранного на странице /favorites.html
 async function loadFavorites() {

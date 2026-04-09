@@ -36,9 +36,52 @@ class MusicRecommender:
             cur.execute("SELECT username FROM users WHERE id = %s", (user_id,))
             result = cur.fetchone()
             return result[0] if result else None
+        finally:
+            cur.close()
+            conn.close()
+    
+    def get_user_favorites_count(self, username):
+        """Получает количество избранных треков пользователя"""
+        user_id = self.get_user_id_by_username(username)
+        if not user_id:
+            logger.warning(f"Пользователь {username} не найден")
+            return 0
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        try:
+            cur.execute("SELECT COUNT(*) FROM favorites WHERE user_id = %s", (user_id,))
+            result = cur.fetchone()
+            count = result[0] if result else 0
+            logger.info(f"Пользователь {username} (id={user_id}) имеет {count} треков в избранном")
+            return count
         except Exception as e:
-            logger.error(f"Ошибка получения username: {e}")
-            return None
+            logger.error(f"Ошибка получения количества избранного: {e}")
+            return 0
+        finally:
+            cur.close()
+            conn.close()
+    
+    def get_user_favorite_track_ids(self, username):
+        """Получает ID избранных треков пользователя"""
+        user_id = self.get_user_id_by_username(username)
+        if not user_id:
+            logger.warning(f"Пользователь {username} не найден при получении треков")
+            return set()
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        try:
+            cur.execute("SELECT track_id FROM favorites WHERE user_id = %s", (user_id,))
+            results = cur.fetchall()
+            track_ids = {row[0] for row in results}
+            logger.info(f"Найдено {len(track_ids)} избранных треков для {username}")
+            return track_ids
+        except Exception as e:
+            logger.error(f"Ошибка получения избранных треков: {e}")
+            return set()
         finally:
             cur.close()
             conn.close()
@@ -197,7 +240,7 @@ class MusicRecommender:
                 FROM tracks
                 WHERE id = ANY(%s)
             """
-            cur.execute(query, (track_ids,))
+            cur.execute(query, (list(track_ids),))
             tracks = cur.fetchall()
             return tracks
             
@@ -244,46 +287,6 @@ class MusicRecommender:
             cur.close()
             conn.close()
     
-    def get_user_favorites_count(self, username):
-        """Получает количество избранных треков пользователя"""
-        user_id = self.get_user_id_by_username(username)
-        if not user_id:
-            return 0
-        
-        conn = get_db_connection()
-        cur = conn.cursor()
-        
-        try:
-            cur.execute("SELECT COUNT(*) FROM favorites WHERE user_id = %s", (user_id,))
-            result = cur.fetchone()
-            return result[0] if result else 0
-        except Exception as e:
-            logger.error(f"Ошибка: {e}")
-            return 0
-        finally:
-            cur.close()
-            conn.close()
-    
-    def get_user_favorite_track_ids(self, username):
-        """Получает ID избранных треков пользователя"""
-        user_id = self.get_user_id_by_username(username)
-        if not user_id:
-            return set()
-        
-        conn = get_db_connection()
-        cur = conn.cursor()
-        
-        try:
-            cur.execute("SELECT track_id FROM favorites WHERE user_id = %s", (user_id,))
-            results = cur.fetchall()
-            return {row[0] for row in results}
-        except Exception as e:
-            logger.error(f"Ошибка: {e}")
-            return set()
-        finally:
-            cur.close()
-            conn.close()
-    
     def get_recommendations(self, username, top_n=20):
         """
         Главная функция получения рекомендаций по username
@@ -299,32 +302,39 @@ class MusicRecommender:
         if favorites_df.empty:
             return self.get_global_popular_tracks(top_n)
         
+        # Получаем ID треков пользователя в избранном
+        user_track_ids = self.get_user_favorite_track_ids(username)
+        
         # Проверяем, есть ли у пользователя избранные треки
-        user_favorites_count = self.get_user_favorites_count(username)
+        user_favorites_count = len(user_track_ids)
         
         # Находим похожих пользователей
         similar_users = self.find_similar_users(username, top_n=30)
         
         if not similar_users:
-            # Если нет похожих, показываем глобально популярные
-            recommendations = self.get_global_popular_tracks(top_n)
-            for rec in recommendations:
+            # Если нет похожих, показываем глобально популярные (исключая избранное)
+            recommendations = self.get_global_popular_tracks(top_n * 2)  # Берем с запасом
+            
+            # Фильтруем треки, которые уже в избранном
+            recommendations = [t for t in recommendations if t['id'] not in user_track_ids]
+            
+            for rec in recommendations[:top_n]:
                 rec['recommendation_reason'] = 'Нет данных о похожих пользователях'
-            return recommendations
+            return recommendations[:top_n]
         
-        # Получаем популярные треки среди похожих пользователей
-        popular_tracks = self.get_popular_tracks_among_users(similar_users, favorites_df, top_n * 2)
+        # Получаем популярные треки среди похожих пользователей (с запасом)
+        popular_tracks = self.get_popular_tracks_among_users(similar_users, favorites_df, top_n * 3)
         
         if not popular_tracks:
-            return self.get_global_popular_tracks(top_n)
+            recommendations = self.get_global_popular_tracks(top_n * 2)
+            recommendations = [t for t in recommendations if t['id'] not in user_track_ids]
+            return recommendations[:top_n]
         
         # Получаем детали треков
-        recommendations = self.get_tracks_details(list(popular_tracks))
+        all_recommendations = self.get_tracks_details(list(popular_tracks))
         
-        # Если у пользователя уже есть избранное, исключаем его треки
-        if user_favorites_count > 0:
-            user_track_ids = self.get_user_favorite_track_ids(username)
-            recommendations = [t for t in recommendations if t['id'] not in user_track_ids]
+        # Фильтруем треки, которые уже в избранном у пользователя
+        recommendations = [t for t in all_recommendations if t['id'] not in user_track_ids]
         
         # Добавляем пояснение к рекомендациям
         for rec in recommendations:
@@ -336,13 +346,19 @@ class MusicRecommender:
         # Ограничиваем количество
         recommendations = recommendations[:top_n]
         
-        # Если рекомендаций меньше top_n, дополняем глобально популярными
+        # Если рекомендаций меньше top_n, дополняем глобально популярными (исключая избранное)
         if len(recommendations) < top_n:
             existing_ids = [t['id'] for t in recommendations]
-            additional = self.get_global_popular_tracks(top_n - len(recommendations))
+            additional_needed = top_n - len(recommendations)
+            
+            # Получаем глобально популярные треки, исключая избранное и уже добавленные
+            additional = self.get_global_popular_tracks(additional_needed * 2)
+            
             for track in additional:
-                if track['id'] not in existing_ids:
+                if track['id'] not in existing_ids and track['id'] not in user_track_ids:
                     track['recommendation_reason'] = 'Популярный трек'
                     recommendations.append(track)
+                    if len(recommendations) >= top_n:
+                        break
         
         return recommendations

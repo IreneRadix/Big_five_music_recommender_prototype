@@ -92,6 +92,12 @@ def feed(user_name):
     return render_template("index.html", username=user_name)
 
 
+@app.route("/favorites/<username>")
+def favorites_page(username):
+    """Страница с избранными треками пользователя"""
+    return render_template("favorites.html", username=username)
+
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == "GET":
@@ -120,6 +126,31 @@ def re_route():
 @app.route('/js/<path:filename>')
 def serve_js(filename):
     return send_from_directory('static/js', filename)
+
+
+@app.route("/api/recommendations/<username>/next", methods=['GET'])
+def get_next_recommendation(username):
+    """Получить следующий трек для замены"""
+    try:
+        # Получаем текущие рекомендации
+        current_recommendations = request.args.get('current_ids', '').split(',')
+        current_ids = [int(id) for id in current_recommendations if id]
+        
+        # Получаем новые рекомендации
+        recommendations = recommender.get_recommendations(username, top_n=30)
+        
+        # Находим трек, которого нет в текущих
+        for track in recommendations:
+            if track['id'] not in current_ids:
+                return jsonify({
+                    'success': True,
+                    'track': track
+                })
+        
+        return jsonify({'success': False, 'message': 'Нет новых треков'}), 404
+    except Exception as e:
+        logger.error(f"Ошибка: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':
