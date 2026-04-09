@@ -2,16 +2,39 @@
 <html>
 <head>
     <title>Регистрация</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
-    <h2>Регистрация</h2>
-    <form id="registerForm">
-        <input type="text" id="username" placeholder="Имя пользователя" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Пароль" required>
-        <button type="submit">Зарегистрироваться</button>
-    </form>
+   <div class="auth-container">
+        <div class="auth-card">
+            <h2 class="auth-title">🎵 Регистрация</h2>
+            
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Имя пользователя</label>
+                    <input type="text" id="username" name="username" class="auth-input" placeholder="Придумайте имя пользователя" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="auth-input" placeholder="example@mail.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" class="auth-input" placeholder="Придумайте пароль" required>
+                    <small style="color: #666; font-size: 12px;">Минимум 4 символа</small>
+                </div>
+                
+                <button type="submit" class="auth-button">Зарегистрироваться</button>
+            </form>
+            
+            <div class="auth-footer">
+                Уже есть аккаунт? <a href="/login" class="auth-link">Войти</a>
+            </div>
+        </div>
+    </div>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
