@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Музыкальный сервис - Рекомендации</title>
+    <title>Избранные треки - Музыкальный сервис</title>
     <style>
         * {
             margin: 0;
@@ -32,11 +32,33 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .header h1 {
             color: #667eea;
             font-size: 28px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            background: #f0f0ff;
+        }
+        
+        .nav-link:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
         }
         
         .user-info {
@@ -66,22 +88,41 @@
             transform: translateY(-2px);
         }
         
-        .stats-card {
+        .favorites-header {
             background: white;
             border-radius: 15px;
-            padding: 15px 25px;
+            padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
-        .stats-card p {
+        .favorites-count {
             color: #764ba2;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 500;
         }
         
-        .recommendations-grid {
+        .clear-all-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .clear-all-btn:hover {
+            background: #ff3838;
+            transform: translateY(-2px);
+        }
+        
+        .favorites-grid {
             display: grid;
             gap: 20px;
         }
@@ -100,13 +141,6 @@
         .track-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .track-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-            min-width: 50px;
         }
         
         .track-cover {
@@ -136,17 +170,6 @@
         .track-genre {
             color: #764ba2;
             font-size: 12px;
-            margin-bottom: 5px;
-        }
-        
-        .track-reason {
-            color: #667eea;
-            font-size: 12px;
-            background: #f0f0ff;
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 15px;
-            margin-top: 5px;
         }
         
         .track-actions {
@@ -156,8 +179,8 @@
             align-items: flex-end;
         }
         
-        .fav-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .remove-btn {
+            background: #ff4757;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -167,14 +190,9 @@
             font-size: 14px;
         }
         
-        .fav-btn:hover:not(:disabled) {
+        .remove-btn:hover {
+            background: #ff3838;
             transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-        }
-        
-        .fav-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
         }
         
         .audio-player {
@@ -191,13 +209,23 @@
             color: #667eea;
         }
         
-        .no-recommendations {
+        .empty-favorites {
             text-align: center;
             padding: 50px;
             background: white;
             border-radius: 15px;
             font-size: 18px;
             color: #999;
+        }
+        
+        .empty-favorites a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .empty-favorites a:hover {
+            text-decoration: underline;
         }
         
         @media (max-width: 768px) {
@@ -213,51 +241,31 @@
             .audio-player {
                 width: 100%;
             }
+            
+            .header {
+                flex-direction: column;
+            }
         }
-
-        /* Добавьте в стили index.html */
-.nav-links {
-    display: flex;
-    gap: 15px;
-}
-
-.nav-link {
-    color: #667eea;
-    text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: all 0.3s;
-    background: #f0f0ff;
-}
-
-.nav-link:hover {
-    background: #667eea;
-    color: white;
-    transform: translateY(-2px);
-}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎵 Музыкальный сервис</h1>
-            <!-- Найдите блок .nav-links или .user-info и добавьте туда ссылку -->
-        <div class="nav-links">
-                <a href="/favorites/{{ username }}" class="nav-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-        ⭐ Мои треки
-    </a>
-        </div>
+            <h1>⭐ Мои избранные треки</h1>
+            <div class="nav-links">
+                <a href="/feed/{{ username }}" class="nav-link">🎵 Рекомендации</a>
+            </div>
             <div class="user-info">
-                <span class="username" id="usernameDisplay"></span>
+                <span class="username" id="usernameDisplay">{{ username }}</span>
                 <button class="logout-btn" onclick="logout()">Выйти</button>
             </div>
         </div>
         
-        <div id="recommendations">
-            <div class="loading">🎵 Загрузка рекомендаций...</div>
+        <div id="favoritesContent">
+            <div class="loading">⭐ Загрузка избранных треков...</div>
         </div>
     </div>
     
-    <script src="/js/main.js"></script>
+    <script src="/js/favorites.js"></script>
 </body>
 </html>
