@@ -14,8 +14,34 @@ class PaginatedSurveyComponent {
         this.progressText = document.getElementById('progressText');
         this.resultDiv = document.getElementById('result');
         
-        // Генерация 44 вопросов
-        this.questions = this.generateQuestions(12);
+        // Вопросы для группы 1 (экстраверсия/открытость опыту)
+        this.group1Questions = [
+            "Я разговорчив(а)",
+            "Мне свойственна оригинальность и творчество, у меня много новых идей",
+            "Я замкнутый(ая)",
+            "Я интересуюсь массой разных вещей",
+            "У меня много энергии",
+            "Мне свойственны глубокие мысли и/или остроумие",
+            "Я излучаю энтузиазм и заряжаю им окружающих",
+            "У меня богатое воображение",
+            "Я обычно молчалив(а)"
+        ];
+        
+        // Вопросы для группы 5 (открытость опыту/интеллект)
+        this.group5Questions = [
+            "Я изобретателен(на)",
+            "Я уверена(а) в себе",
+            "Я высоко ценю искусство и эстетические переживания",
+            "Порой я застенчив(а)",
+            "Я предпочитаю рутинную работу",
+            "Я общителен(на)",
+            "Я люблю развивать идеи и размышлять",
+            "У меня мало увлечений, связанных с искусством",
+            "Я разбираюсь в искусстве, музыке и/или литературе"
+        ];
+        
+        // Объединяем вопросы групп 1 и 5
+        this.questions = [...this.group1Questions, ...this.group5Questions];
         
         // Настройки пагинации
         this.questionsPerPage = 4;
@@ -29,81 +55,13 @@ class PaginatedSurveyComponent {
             answers: {}
         };
         
-        // Определение групп вопросов для суммирования (индексы с 0)
-        this.questionGroups = {
-            group1: [0, 5, 10, 15, 20, 25, 30, 35, 40],     // 1,6,11,16,21,26,31,36,41
-            group2: [1, 6, 11, 16, 21, 26, 31, 36, 41],     // 2,7,12,17,22,27,32,37,42
-            group3: [2, 7, 12, 17, 22, 27, 32, 37, 42],     // 3,8,13,18,23,28,33,38,43
-            group4: [3, 8, 13, 18, 23, 28, 33, 38],         // 4,9,14,19,24,29,34,39
-            group5: [4, 9, 14, 19, 24, 29, 34, 39, 43]      // 5,10,15,20,25,30,35,40,44
-        };
-        
         // Переменные для хранения сумм по группам
         this.groupSums = {
             group1: 0,
-            group2: 0,
-            group3: 0,
-            group4: 0,
             group5: 0
         };
         
         this.init();
-    }
-    
-    generateQuestions(count) {
-        const questions = [];
-        const topics = [
-            'качество обслуживания',
-            'удобство сайта',
-            'скорость работы',
-            'ценовую политику',
-            'ассортимент товаров',
-            'доставку',
-            'поддержку клиентов',
-            'мобильное приложение',
-            'бонусную программу',
-            'акции и скидки',
-            'информативность',
-            'дизайн',
-            'навигацию',
-            'отзывы других покупателей',
-            'процесс оформления заказа',
-            'способы оплаты',
-            'упаковку товаров',
-            'качество товаров',
-            'работу склада',
-            'информирование о статусе заказа',
-            'работу колл-центра',
-            'возврат товаров',
-            'обмен товаров',
-            'гарантийное обслуживание',
-            'сервисные центры',
-            'доставку в регионы',
-            'международную доставку',
-            'работу курьеров',
-            'пункты самовывоза',
-            'работу с претензиями',
-            'обратную связь',
-            'персонализацию',
-            'рекомендации товаров',
-            'поиск на сайте',
-            'фильтры товаров',
-            'сравнение товаров',
-            'отзывы о товарах',
-            'фотографии товаров',
-            'описания товаров',
-            'характеристики товаров',
-            'наличие на складе',
-            'сроки доставки',
-            'стоимость доставки',
-            'общее впечатление'
-        ];
-        
-        for (let i = 0; i < count; i++) {
-            questions.push(`Как вы оцениваете ${topics[i % topics.length]}?`);
-        }
-        
-        return questions;
     }
     
     init() {
@@ -122,14 +80,14 @@ class PaginatedSurveyComponent {
             const globalIndex = startIndex + localIndex;
             const savedAnswer = this.userData.answers[globalIndex];
             
-            // Определяем группу вопроса для визуальной подсказки (опционально)
-            const groupInfo = this.getQuestionGroup(globalIndex);
+            // Определяем группу вопроса
+            let groupNumber = globalIndex < this.group1Questions.length ? 1 : 5;
             
             return `
                 <div class="question-item" data-question-index="${globalIndex}">
                     <div class="question-text">
                         ${globalIndex + 1}. ${question}
-                        ${groupInfo ? `<span class="question-group">(Группа ${groupInfo})</span>` : ''}
+                        <span class="question-group">(Группа ${groupNumber})</span>
                     </div>
                     <div class="rating" id="rating-${globalIndex}">
                         ${[1,2,3,4,5].map(num => `
@@ -152,15 +110,6 @@ class PaginatedSurveyComponent {
         
         // Показываем/скрываем кнопку отправки
         this.submitBtn.classList.toggle('hidden', this.currentPage !== this.totalPages);
-    }
-    
-    getQuestionGroup(index) {
-        for (let [groupName, indices] of Object.entries(this.questionGroups)) {
-            if (indices.includes(index)) {
-                return groupName.replace('group', '');
-            }
-        }
-        return null;
     }
     
     setupEventListeners() {
@@ -248,7 +197,6 @@ class PaginatedSurveyComponent {
         // Проверяем, все ли вопросы отвечены на текущей странице
         this.checkCurrentPageCompletion();
         
-        // Для отладки - выводим суммы в консоль (можно удалить в продакшене)
         console.log('Текущие суммы по группам:', this.groupSums);
     }
     
@@ -256,25 +204,18 @@ class PaginatedSurveyComponent {
         // Сброс сумм
         this.groupSums = {
             group1: 0,
-            group2: 0,
-            group3: 0,
-            group4: 0,
             group5: 0
         };
         
-       for (let [groupName, indices] of Object.entries(this.questionGroups)) {
-        let sum = 0;
-        
-        for (let index of indices) {
-            if (this.userData.answers[index]) {
-                sum += this.userData.answers[index];
+        // Проходим по всем сохранённым ответам
+        for (const [idx, answerValue] of Object.entries(this.userData.answers)) {
+            const index = parseInt(idx);
+            if (index < this.group1Questions.length) {
+                this.groupSums.group1 += answerValue;
+            } else {
+                this.groupSums.group5 += answerValue;
             }
         }
-        
-       
-        this.groupSums[groupName] = sum;
-    }
-
     }
     
     checkCurrentPageCompletion() {
@@ -289,7 +230,6 @@ class PaginatedSurveyComponent {
             }
         }
         
-        // Визуально отмечаем завершенность страницы
         if (allAnswered) {
             this.pageIndicator.style.color = '#28a745';
         } else {
@@ -309,13 +249,8 @@ class PaginatedSurveyComponent {
     checkAllQuestionsAnswered() {
         const allAnswered = Object.keys(this.userData.answers).length === this.questions.length;
         
-        if (allAnswered) {
-            // Финальный подсчет сумм
-            this.calculateGroupSums();
-            
-            if (this.currentPage === this.totalPages) {
-                this.submitBtn.classList.remove('hidden');
-            }
+        if (allAnswered && this.currentPage === this.totalPages) {
+            this.submitBtn.classList.remove('hidden');
         }
     }
     
@@ -327,7 +262,6 @@ class PaginatedSurveyComponent {
     }
     
     goToNextPage() {
-        // Проверяем, все ли вопросы на текущей странице отвечены
         const startIndex = (this.currentPage - 1) * this.questionsPerPage;
         const endIndex = Math.min(startIndex + this.questionsPerPage, this.questions.length);
         
@@ -335,8 +269,10 @@ class PaginatedSurveyComponent {
         for (let i = startIndex; i < endIndex; i++) {
             if (!this.userData.answers[i]) {
                 allCurrentPageAnswered = false;
-                document.getElementById(`questionError-${i}`).textContent = 
-                    'Пожалуйста, ответьте на этот вопрос';
+                const errorElement = document.getElementById(`questionError-${i}`);
+                if (errorElement) {
+                    errorElement.textContent = 'Пожалуйста, ответьте на этот вопрос';
+                }
             }
         }
         
@@ -355,18 +291,15 @@ class PaginatedSurveyComponent {
     validateForm() {
         let isValid = true;
         
-        // Проверка пола
         if (!this.userData.gender) {
             document.getElementById('genderError').textContent = 'Выберите пол';
             isValid = false;
         }
         
-        // Проверка возраста
         if (!this.validateAge()) {
             isValid = false;
         }
         
-        // Проверка всех ответов
         if (Object.keys(this.userData.answers).length !== this.questions.length) {
             this.showResult('Ответьте на все вопросы перед отправкой', 'error');
             isValid = false;
@@ -382,20 +315,17 @@ class PaginatedSurveyComponent {
             return;
         }
         
-        // Финальный подсчет сумм перед отправкой
         this.calculateGroupSums();
         
-        // Блокируем кнопку отправки
         this.submitBtn.disabled = true;
         this.submitBtn.textContent = 'Отправка...';
         
         try {
-            // Подготавливаем данные для отправки
             const dataToSend = {
                 personal: {
                     gender: this.userData.gender,
                     age: this.userData.age,
-                    id : localStorage.getItem('user_id')
+                    id: localStorage.getItem('user_id')
                 },
                 answers: this.userData.answers,
                 groupSums: this.groupSums,
@@ -406,15 +336,11 @@ class PaginatedSurveyComponent {
                 }
             };
             
-            console.log('Отправляемые данные с суммами по группам:', dataToSend);
+            console.log('Отправляемые данные:', dataToSend);
             
-            // Отправка данных на сервер
             const response = await this.sendToServer(dataToSend);
             
             if (response.ok) {
-                // Показываем пользователю результаты по группам
-                //this.showGroupResults();
-                //this.resetForm();
                 window.location.href = '/login';
             } else {
                 throw new Error('Ошибка сервера');
@@ -428,46 +354,12 @@ class PaginatedSurveyComponent {
         }
     }
     
-    showGroupResults() {
-        // Создаем красивое отображение результатов по группам
-        const resultsHTML = `
-            <div class="group-results">
-                <h3>Результаты по категориям:</h3>
-                <div class="result-item">
-                    <span>Группа 1 (вопросы 1,6,11,16,21,26,31,36,41):</span>
-                    <strong>${this.groupSums.group1} баллов</strong>
-                </div>
-                <div class="result-item">
-                    <span>Группа 2 (вопросы 2,7,12,17,22,27,32,37,42):</span>
-                    <strong>${this.groupSums.group2} баллов</strong>
-                </div>
-                <div class="result-item">
-                    <span>Группа 3 (вопросы 3,8,13,18,23,28,33,38,43):</span>
-                    <strong>${this.groupSums.group3} баллов</strong>
-                </div>
-                <div class="result-item">
-                    <span>Группа 4 (вопросы 4,9,14,19,24,29,34,39):</span>
-                    <strong>${this.groupSums.group4} баллов</strong>
-                </div>
-                <div class="result-item">
-                    <span>Группа 5 (вопросы 5,10,15,20,25,30,35,40,44):</span>
-                    <strong>${this.groupSums.group5} баллов</strong>
-                </div>
-            </div>
-        `;
-        
-        this.resultDiv.innerHTML = resultsHTML;
-        this.resultDiv.className = 'success';
-    }
-    
     async sendToServer(data) {
-        // Имитация отправки на сервер
         return fetch(`${API_BASE}/survey`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
     }
     
     showResult(message, type) {
@@ -481,41 +373,31 @@ class PaginatedSurveyComponent {
     }
     
     resetForm() {
-        // Сбрасываем выделение пола
         this.genderBtns.forEach(btn => btn.classList.remove('active'));
-        
-        // Сбрасываем возраст
         this.ageInput.value = '';
         
-        // Очищаем ответы
         this.userData = {
             gender: null,
             age: null,
             answers: {}
         };
         
-        // Сбрасываем суммы групп
         this.groupSums = {
             group1: 0,
-            group2: 0,
-            group3: 0,
-            group4: 0,
             group5: 0
         };
         
-        // Возвращаемся на первую страницу
         this.currentPage = 1;
         this.renderCurrentPage();
         this.updateProgress();
         
-        // Очищаем ошибки
         document.querySelectorAll('.error').forEach(error => {
             error.textContent = '';
         });
     }
 }
 
-// Добавляем стили для отображения результатов групп в CSS (можно добавить в style.css)
+// Стили
 const additionalStyles = `
 .group-results {
     padding: 20px;
@@ -554,14 +436,41 @@ const additionalStyles = `
     padding: 2px 6px;
     border-radius: 3px;
 }
+
+.rating {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.rating-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.rating-btn.selected {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.question-item {
+    margin-bottom: 25px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
 `;
 
-// Добавляем стили в документ
 const styleSheet = document.createElement("style");
 styleSheet.textContent = additionalStyles;
 document.head.appendChild(styleSheet);
 
-// Инициализация
 document.addEventListener('DOMContentLoaded', () => {
     new PaginatedSurveyComponent();
 });
