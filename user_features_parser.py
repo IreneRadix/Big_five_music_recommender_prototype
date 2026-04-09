@@ -31,15 +31,12 @@ from bs4 import BeautifulSoup
 from psycopg2.extras import execute_values
 import requests
 
-
 import cProfile
 import pstats
 from io import StringIO
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-#https://www.youtube.com/watch?v=yCQFs5MBwWQ
 
 def scroll_to_bottom(driver, delay=3):
     last_height = driver.execute_script("return document.body.scrollHeight")
@@ -59,7 +56,6 @@ def extract_image_urls(driver, timeout=60):
     
     wait = WebDriverWait(driver, 20)
     
-    # Получаем общее количество фото
     try:
         count_xpath = "//div[contains(@class, 'vkitBreadcrumb__indicator')]//h4"
         count_element = wait.until(EC.presence_of_element_located((By.XPATH, count_xpath)))
@@ -69,7 +65,6 @@ def extract_image_urls(driver, timeout=60):
         total_photos = None
         print("Не удалось получить количество фото")
     
-    # Собираем URL фото в set для уникальности
     all_src_urls = set()
     all_post_urls = set()
     
@@ -78,15 +73,13 @@ def extract_image_urls(driver, timeout=60):
     scroll_attempts = 0
     max_scroll_attempts = 30
     
-    # Получаем контейнер для прокрутки
     scroll_container = driver.find_element(By.CSS_SELECTOR, ".PhotosPageGrid__virtualRoot--8R5Be")
     
     while scroll_attempts < max_scroll_attempts:
-        # Получаем текущие видимые фото
+        
         photos = driver.find_elements(By.CSS_SELECTOR, 
             ".PhotosPagePhotoGridVirtualItem__root--jeBPH")
         
-        # Добавляем URL всех видимых фото
         for photo in photos:
             try:
                 img = photo.find_element(By.CSS_SELECTOR, 
@@ -104,16 +97,14 @@ def extract_image_urls(driver, timeout=60):
         current_count = len(all_src_urls)
         print(f"Собрано уникальных фото: {current_count}/{total_photos if total_photos else '?'}")
         
-        # Проверяем, собрали ли все
         if total_photos and current_count >= total_photos:
             print("Все фото собраны!")
             break
         
-        # Проверяем, не застряли ли мы
         if current_count == last_count:
             same_count_attempts += 1
             if same_count_attempts >= 5:
-                # Пробуем прокрутить в разные стороны
+                
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 1000);")
                 time.sleep(1)
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -123,11 +114,9 @@ def extract_image_urls(driver, timeout=60):
             same_count_attempts = 0
             last_count = current_count
         
-        # Прокручиваем контейнер
         driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scroll_container)
         time.sleep(2)
         
-        # Дополнительная прокрутка всей страницы
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(1)
         
@@ -147,13 +136,12 @@ def get_imgs(urls):
             print(f"Failed {url}: {e}")
     return photos
 
-def extract_after_photo(url): #айдишник фотки
+def extract_after_photo(url): 
 
-    # Ищем подстроку "photo"
     if "photo" in url:
-        # Находим индекс начала "photo"
+        
         photo_index = url.find("photo")
-        # Возвращаем всё, что идёт после "photo"
+        
         return url[photo_index + len("photo"):]
     else:
         return None
@@ -190,7 +178,6 @@ def process_single_photo(photo: bytes) -> Optional[List[Dict]]:
     except Exception:
         return None
 
-
 def process_batch(photos_batch: List[bytes]) -> List[Dict]:
     results = []
     for photo in photos_batch:
@@ -198,7 +185,6 @@ def process_batch(photos_batch: List[bytes]) -> List[Dict]:
         if result:
             results.extend(result)
     return results
-
 
 def process_imgs_parallel(photos: List[bytes], eps: float = 0.5, 
                          min_samples: int = 2, use_process_pool: bool = False,
@@ -292,24 +278,20 @@ def process_imgs_parallel(photos: List[bytes], eps: float = 0.5,
     return max_len, max_cluster
 
 def get_vk_driver():
-        # Создаем папку для логов, если её нет
+        
     log_dir = "C:\\temp\\selenium_logs"
     os.makedirs(log_dir, exist_ok=True)
 
     options = Options()
 
-    # !!! ВАЖНО: Используем НОВУЮ папку, а не ваш реальный профиль
-    # Создайте эту папку вручную или раскомментируйте строку ниже
     options.add_argument("--user-data-dir=C:\\selenium_profile")
 
-    # Добавляем аргументы для стабильности
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--remote-debugging-port=9222")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
 
-    # Включаем подробное логирование
     service = Service()
     service_args = [
         "--verbose",
@@ -317,11 +299,9 @@ def get_vk_driver():
         "--append-log"
     ]
     service = Service(service_args=service_args)
-    #service=service,
-
+    
     driver = webdriver.Chrome(options=options)
     return driver
-
 
 def get_user_ids():
     conn = get_db_connection()
@@ -333,7 +313,7 @@ def get_user_ids():
 
 def get_liker_urls_for_one(photo_url, album):
         liker_urls = []
-        #print(album + r"?w=likes%2Fphoto" + extract_after_photo(photo_url))
+        
         driver.get(album + r"?w=likes%2Fphoto" + extract_after_photo(photo_url))
         scroll_to_bottom(driver)
         likers = driver.find_elements(By.CLASS_NAME, "fans_fan_ph ")
@@ -348,7 +328,6 @@ def get_friends(link, driver):
     
     time.sleep(3)
     
-    # Получаем количество
     try:
         active_tab = driver.find_element(By.CSS_SELECTOR, ".vkuiTabsItem__selected")
         counter = active_tab.find_element(By.CSS_SELECTOR, ".vkuiTabsItem__status")
@@ -361,7 +340,7 @@ def get_friends(link, driver):
     last_count = 0
     
     while True:
-        # Получаем текущие ссылки
+        
         elements = driver.find_elements(By.CSS_SELECTOR, "a.vkitLink__link--b0dQw")
         for elem in elements:
             href = elem.get_attribute('href')
@@ -374,17 +353,16 @@ def get_friends(link, driver):
             break
         
         if len(friends) == last_count:
-            # Пробуем найти кнопку "Показать еще"
+            
             try:
                 show_more = driver.find_element(By.XPATH, "//button[contains(text(), 'Показать еще')]")
                 show_more.click()
                 time.sleep(2)
             except:
-                # Если кнопки нет, пробуем скролл
+                
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(2)
                 
-                # Проверяем, изменилось ли количество
                 new_elements = driver.find_elements(By.CSS_SELECTOR, "a.vkitLink__link--b0dQw")
                 if len(new_elements) == last_count or len(new_elements)> 3000:
                     break
@@ -396,19 +374,16 @@ def get_friends(link, driver):
     print(f"Итого друзей: {len(friends)}")
     return list(friends), total_friends
 
-
 def init_deepface():
     """Инициализация модели DeepFace (однократно)"""
     DeepFace.build_model("Facenet512")
 
-# Использование
 init_deepface()
 driver = get_vk_driver()
 
-
 vk_user_ids = get_user_ids()
-features = {'user_id': [],'pictures': [], 'friends': [], 'likes_pics_med': []} #{'user_id': [str(vk_user_ids[1][0])],'pictures': [11], 'friends': [251], 'likes_pics_med': [17]}
-#print(vk_user_ids)
+features = {'user_id': [],'pictures': [], 'friends': [], 'likes_pics_med': []} 
+
 count = 0
 vk_user_id = str(vk_user_ids[1][0])
 for item in vk_user_ids:
@@ -451,6 +426,4 @@ for item in vk_user_ids:
         features['pictures'].append(auto_portraits_number)
     except Exception as e:
         print(vk_user_id, e)
-    #print(med_friend_likes_per_portrait, n_friends, auto_portraits_number)
-    #print(user_liks)
-
+    

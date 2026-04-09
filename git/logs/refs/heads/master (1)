@@ -1,0 +1,19 @@
+0000000000000000000000000000000000000000 d30d945ea61fcfbb4c89dd604a665f1a712688b2 IreneRadix <irinagoncarova094@gmail.com> 1773133201 +0300	commit (initial): Авторизация и переходы между страницами
+d30d945ea61fcfbb4c89dd604a665f1a712688b2 b68cd3ba37701a939212178a21f2407afb53e6ea IreneRadix <irinagoncarova094@gmail.com> 1773142123 +0300	commit: Опрос прикручен, но все вопросы на одной странице
+b68cd3ba37701a939212178a21f2407afb53e6ea 0e289f532c61acda34d907cb6b26b246c303edec IreneRadix <irinagoncarova094@gmail.com> 1773171307 +0300	commit: Опрос прикручен, переход в рекомендации есть
+0e289f532c61acda34d907cb6b26b246c303edec 4565c39ba2f8dafd34e7b40d65ff1f097509d5cb IreneRadix <irinagoncarova094@gmail.com> 1774432607 +0300	commit: parsers
+4565c39ba2f8dafd34e7b40d65ff1f097509d5cb 973f54d9c5a6cee2a5e70bf388d2f0be306b1a4e IreneRadix <irinagoncarova094@gmail.com> 1774774647 +0300	commit: true recommender fail
+973f54d9c5a6cee2a5e70bf388d2f0be306b1a4e 52c993be1e2e4f58fbdbf947c8e45f646c48df2a IreneRadix <irinagoncarova094@gmail.com> 1774778773 +0300	commit: before deepseek spoiled it
+52c993be1e2e4f58fbdbf947c8e45f646c48df2a 8250e52278e836692c9386704183a2f61c1f9e7d IreneRadix <irinagoncarova094@gmail.com> 1775654588 +0300	commit: Регистрация через вк прикручена
+8250e52278e836692c9386704183a2f61c1f9e7d 0e8823dd7cc123bae0e9ecf8da7d63c7a3d65558 IreneRadix <irinagoncarova094@gmail.com> 1775676693 +0300	commit: хоть какие-то рекомендации
+0e8823dd7cc123bae0e9ecf8da7d63c7a3d65558 0a223f2485af9ab1653970b8815ba0bed17f9899 IreneRadix <irinagoncarova094@gmail.com> 1775726119 +0300	commit: Есть избранное
+0a223f2485af9ab1653970b8815ba0bed17f9899 5effd77197d6f26c3ab06634851ef0da3400f17f IreneRadix <irinagoncarova094@gmail.com> 1775727481 +0300	commit: skipTrack есть, но работает так себе
+5effd77197d6f26c3ab06634851ef0da3400f17f 63bb58da7432ff00ca9c1fdc12f7c1ebd5a89f93 IreneRadix <irinagoncarova094@gmail.com> 1775732776 +0300	commit: Normal questions
+63bb58da7432ff00ca9c1fdc12f7c1ebd5a89f93 3da33e268cce6a0996b6d73c63c9907475ec2d77 IreneRadix <irinagoncarova094@gmail.com> 1775735976 +0300	commit: styles better
+3da33e268cce6a0996b6d73c63c9907475ec2d77 6b371a2743cf151cc06b6d7db7ae5716a2be9521 IreneRadix <irinagoncarova094@gmail.com> 1775901867 +0300	commit: готово, но не для клавдии акакиевны
+6b371a2743cf151cc06b6d7db7ae5716a2be9521 539f17522d82adc5a56baf3053aa9da73823f7ad IreneRadix <irinagoncarova094@gmail.com> 1775913753 +0300	commit: музыка под настроение с заглушками для клавдии акакиевны
+539f17522d82adc5a56baf3053aa9da73823f7ad 6883616d19674619d3019380b64a3577c347ee9f IreneRadix <irinagoncarova094@gmail.com> 1775938961 +0300	commit: история прослушиваний
+6883616d19674619d3019380b64a3577c347ee9f 36ce18979865e3459bc91c42af5d7cde3e9fd84a IreneRadix <irinagoncarova094@gmail.com> 1776089196 +0300	commit: dark theme
+36ce18979865e3459bc91c42af5d7cde3e9fd84a eee6fd909fdd1faad5db60e002c5a29cc7f052f2 IreneRadix <irinagoncarova094@gmail.com> 1776098763 +0300	commit: half-dead admin dashboard
+eee6fd909fdd1faad5db60e002c5a29cc7f052f2 088c17e59c1ea41d5ee490d461cf28ed06000000 IreneRadix <irinagoncarova094@gmail.com> 1776158491 +0300	commit: админская панель с сомнительными данными
+088c17e59c1ea41d5ee490d461cf28ed06000000 0e0119ea32ef82b57245cc4336add1fbc2939439 IreneRadix <irinagoncarova094@gmail.com> 1776244385 +0300	commit: na vsyakiy

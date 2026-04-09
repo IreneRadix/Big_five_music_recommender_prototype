@@ -1,11 +1,10 @@
 from flask import Blueprint, request, jsonify
 from database import get_db_connection
 from psycopg2.extras import RealDictCursor
-from auth import token_required  # Теперь это должно работать
+from auth import token_required  
 
 favorites_bp = Blueprint('favorites', __name__)
 
-# Добавить трек в избранное
 @favorites_bp.route('/favorites', methods=['POST'])
 @token_required
 def add_favorite(current_user_id):
@@ -31,7 +30,6 @@ def add_favorite(current_user_id):
         cur.close()
         conn.close()
 
-# Получить все избранные треки пользователя
 @favorites_bp.route('/favorites', methods=['GET'])
 @token_required
 def get_favorites(current_user_id):
@@ -48,7 +46,6 @@ def get_favorites(current_user_id):
     conn.close()
     return jsonify(tracks)
 
-# Удалить трек из избранного
 @favorites_bp.route('/favorites/<int:track_id>', methods=['DELETE'])
 @token_required
 def delete_favorite(current_user_id, track_id):

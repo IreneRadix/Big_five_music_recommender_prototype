@@ -4,11 +4,9 @@ from database import get_db_connection
 
 vk_bp = Blueprint('vk', __name__)
 
-
 def save_user_vk_data(data):
     conn = get_db_connection()
     cur = conn.cursor()
-
 
 @vk_bp.route('/api/vk_parse', methods=['POST'])
 def vk_parse():
@@ -23,12 +21,7 @@ def vk_parse():
         if not consent:
             return jsonify({'error': 'Необходимо согласие на обработку данных'}), 400
         
-        # Парсим данные
         user_data = parse_vk_data_api(vk_url, consent)
-        
-        # Здесь вы можете сохранить данные в базу
-        #save_user_vk_data(user_data)
-
         
         return jsonify({
             'success': True,
