@@ -1,30 +1,24 @@
 const API_BASE = 'http://localhost:5000/api';
 
-function saveToRecentlyPlayed(track) {
-    try {
-        const STORAGE_KEY = 'recently_played_tracks';
-        const MAX_HISTORY = 20;
-        
-        const stored = localStorage.getItem(STORAGE_KEY);
-        let history = stored ? JSON.parse(stored) : [];
-        
-        history = history.filter(t => t.id !== track.id);
-        
-        history.unshift({
-            ...track,
-            played_at: new Date().toISOString()
-        });
-        
-        if (history.length > MAX_HISTORY) {
-            history = history.slice(0, MAX_HISTORY);
+document.addEventListener('play', function(e) {
+    const audio = e.target;
+    if (audio.classList.contains('audio-player')) {
+        const trackCard = audio.closest('.track-card');
+        if (trackCard) {
+            const track = {
+                id: parseInt(trackCard.dataset.trackId),
+                
+            };
+            
+            if (typeof addToHistoryById === 'function') {
+                addToHistoryById(track.id);
+            } else {
+                addToHistory(track); 
+            }
         }
-        
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    } catch (error) {
-        console.error('Ошибка сохранения истории:', error);
     }
-}
-
+}, true);
+    
 document.addEventListener('play', function(e) {
     const audio = e.target;
     if (audio.classList.contains('audio-player')) {
@@ -38,6 +32,9 @@ document.addEventListener('play', function(e) {
                 cover_url: trackCard.querySelector('.track-cover')?.src || '',
                 file_url: audio.src
             };
+            
+            addToHistory(track.id);
+            
             saveToRecentlyPlayed(track);
         }
     }
@@ -641,7 +638,7 @@ function initTabs() {
         const sectionId = activeTab.dataset.tab;
         loadSectionRecommendations(sectionId);
     }
-    
+
     tabBtns.forEach(btn => {
         btn.addEventListener('click', async () => {
             const sectionId = btn.dataset.tab;
@@ -709,27 +706,4 @@ function saveToRecentlyPlayed(track) {
     } catch (error) {
         console.error('Ошибка сохранения истории:', error);
     }
-}
-
-document.addEventListener('play', function(e) {
-    const audio = e.target;
-    if (audio.classList.contains('audio-player')) {
-        const trackCard = audio.closest('.track-card');
-        if (trackCard) {
-            const track = {
-                id: parseInt(trackCard.dataset.trackId),
-                title: trackCard.querySelector('.track-title')?.textContent || 'Неизвестный трек',
-                artist: trackCard.querySelector('.track-artist')?.textContent || 'Неизвестный исполнитель',
-                genre: trackCard.querySelector('.track-genre')?.textContent?.replace('🎵 ', '') || '',
-                cover_url: trackCard.querySelector('.track-cover')?.src || '',
-                file_url: audio.src
-            };
-            saveToRecentlyPlayed(track);
-        }
-    }
-}, true);
-
-if (window.location.pathname === '/' || 
-    window.location.pathname.includes('/feed/')) {
-    document.addEventListener('DOMContentLoaded', loadRecommendations);
 }

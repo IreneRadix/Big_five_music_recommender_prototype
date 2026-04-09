@@ -7,25 +7,25 @@ import jwt
 from datetime import datetime, timedelta
 import os
 import sys
-# импортируем наш парсер (допустим, он в файле vk_parser.py)
-from vk_parser import parse_vk_data  # предполагаемая функция
+
+from vk_parser import parse_vk_data  
 
 vk_bp = Blueprint('vk_auth', __name__)
 
 VK_CLIENT_ID = 'your_client_id'
 VK_CLIENT_SECRET = 'your_client_secret'
-VK_REDIRECT_URI = 'http://localhost:5000/api/vk/callback'  # должен совпадать с настройками приложения ВК
+VK_REDIRECT_URI = 'http://localhost:5000/api/vk/callback'  
 
 @vk_bp.route('/vk/login')
 def vk_login():
-    # Генерируем URL для перенаправления на ВК
+    
     vk_auth_url = (
         f"https://oauth.vk.com/authorize?"
         f"client_id={VK_CLIENT_ID}&"
         f"redirect_uri={VK_REDIRECT_URI}&"
         f"response_type=code&"
         f"v=5.131&"
-        f"scope=email"  # запрашиваем email
+        f"scope=email"  
     )
     return redirect(vk_auth_url)
 
@@ -35,7 +35,6 @@ def vk_callback():
     if not code:
         return jsonify({"error": "No code provided"}), 400
 
-    # Получаем access_token
     token_url = "https://oauth.vk.com/access_token"
     params = {
         'client_id': VK_CLIENT_ID,
@@ -50,9 +49,8 @@ def vk_callback():
 
     access_token = data['access_token']
     user_vk_id = data['user_id']
-    email = data.get('email', '')  # может быть не указан
+    email = data.get('email', '')  
 
-    # Получаем данные пользователя из ВК
     user_info_url = "https://api.vk.com/method/users.get"
     params = {
         'user_ids': user_vk_id,
@@ -67,32 +65,27 @@ def vk_callback():
 
     user_info = user_data['response'][0]
 
-    # Запускаем наш парсер для извлечения дополнительных данных (например, психологических характеристик)
-    # Предположим, что parse_vk_data принимает user_info и возвращает словарь с personality traits
     try:
-        parsed_data = parse_vk_data(user_info)  # возвращает dict с ключами: extraversion, openness и т.д.
+        parsed_data = parse_vk_data(user_info)  
     except Exception as e:
-        # Если парсер не сработал, логируем ошибку, но продолжаем
+        
         print(f"Parser error: {e}")
         parsed_data = {}
 
-    # Теперь создаем или обновляем пользователя в нашей базе
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Проверяем, есть ли пользователь с таким vk_id
     cur.execute("SELECT id, username FROM users WHERE vk_id = %s", (user_vk_id,))
     existing = cur.fetchone()
     if existing:
         user_id = existing[0]
-        # обновляем email, если нужно
+        
         cur.execute("UPDATE users SET email = %s WHERE id = %s", (email, user_id))
         conn.commit()
     else:
-        # Создаем нового пользователя
-        # Генерируем username на основе данных ВК
+        
         username = user_info.get('first_name', 'user') + '_' + str(user_vk_id)
-        # Для пароля генерируем случайный (пользователь будет входить через ВК)
+        
         import secrets
         random_password = secrets.token_urlsafe(16)
         hashed = bcrypt.hashpw(random_password.encode('utf-8'), bcrypt.gensalt())
@@ -103,9 +96,8 @@ def vk_callback():
         user_id = cur.fetchone()[0]
         conn.commit()
 
-    # Если парсер вернул данные, сохраняем их в user_personality
     if parsed_data:
-        # Обновляем или вставляем в user_personality
+        
         cur.execute("""
             INSERT INTO user_personality (user_id, extraversion, conscientiousness, agreeableness, neuroticism, openness)
             VALUES (%s, %s, %s, %s, %s, %s)
@@ -129,7 +121,6 @@ def vk_callback():
     cur.close()
     conn.close()
 
-    # Создаем JWT токен для автоматического входа
     token = jwt.encode(
         {
             'user_id': user_id,
@@ -139,10 +130,4 @@ def vk_callback():
         algorithm='HS256'
     )
 
-    # Перенаправляем на фронтенд с токеном (например, через URL параметр или установку cookie)
-    # Лучше установить токен в cookie (с httpOnly) или передать в параметре
-    # Для простоты перенаправим на главную страницу с токеном в URL, но это небезопасно. 
-    # В учебном проекте можно сделать перенаправление на страницу, которая сохранит токен в localStorage.
-    # Например, создать промежуточную страницу frontend_callback.html.
-    # Сделаем так:
     return redirect(f'http://localhost:5000/vk_callback.html?token={token}&user_id={user_id}')
