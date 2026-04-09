@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from database import get_db_connection
 import logging
 
-# Создаем логгер для blueprint
 logger = logging.getLogger(__name__)
 
 survey_bp = Blueprint('survey', __name__)
@@ -30,7 +29,6 @@ def get_user_big5():
     Conscientiousness = group_sums.get('group3')
     Neuroticism = group_sums.get('group4')
     Openness = group_sums.get('group5')
-
 
     logger.warning(data)
 

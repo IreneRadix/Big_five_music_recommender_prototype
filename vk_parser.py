@@ -3,6 +3,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from single_user_traits_predictor import get_user_traits
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+
 import logging
 from typing import List, Tuple, Dict, Any, Optional
 import multiprocessing as mp
@@ -33,11 +34,11 @@ import requests
 import cProfile
 import pstats
 from io import StringIO
+from vk_demographic import get_user_info_with_consent, extract_user_id_from_url as extract_id_from_url
 from flask import jsonify
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 def scroll_to_bottom(driver, delay=3):
     """Прокрутка страницы до конца"""
@@ -50,14 +51,12 @@ def scroll_to_bottom(driver, delay=3):
             break
         last_height = new_height
 
-
 def extract_image_urls(driver, timeout=60):
     """
     Извлекает ВСЕ фото с учетом виртуального скроллинга
     """
     wait = WebDriverWait(driver, 20)
     
-    # Получаем общее количество фото
     try:
         count_xpath = "//div[contains(@class, 'vkitBreadcrumb__indicator')]//h4"
         count_element = wait.until(EC.presence_of_element_located((By.XPATH, count_xpath)))
@@ -67,7 +66,6 @@ def extract_image_urls(driver, timeout=60):
         total_photos = None
         print("Не удалось получить количество фото")
     
-    # Собираем URL фото в set для уникальности
     all_src_urls = set()
     all_post_urls = set()
     
@@ -76,18 +74,16 @@ def extract_image_urls(driver, timeout=60):
     scroll_attempts = 0
     max_scroll_attempts = 30
     
-    # Получаем контейнер для прокрутки
     try:
         scroll_container = driver.find_element(By.CSS_SELECTOR, ".PhotosPageGrid__virtualRoot--8R5Be")
     except:
         scroll_container = None
     
     while scroll_attempts < max_scroll_attempts:
-        # Получаем текущие видимые фото
+        
         photos = driver.find_elements(By.CSS_SELECTOR, 
             ".PhotosPagePhotoGridVirtualItem__root--jeBPH")
         
-        # Добавляем URL всех видимых фото
         for photo in photos:
             try:
                 img = photo.find_element(By.CSS_SELECTOR, 
@@ -105,16 +101,14 @@ def extract_image_urls(driver, timeout=60):
         current_count = len(all_src_urls)
         print(f"Собрано уникальных фото: {current_count}/{total_photos if total_photos else '?'}")
         
-        # Проверяем, собрали ли все
         if total_photos and current_count >= total_photos:
             print("Все фото собраны!")
             break
         
-        # Проверяем, не застряли ли мы
         if current_count == last_count:
             same_count_attempts += 1
             if same_count_attempts >= 5:
-                # Пробуем прокрутить в разные стороны
+                
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight - 1000);")
                 time.sleep(1)
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -124,12 +118,10 @@ def extract_image_urls(driver, timeout=60):
             same_count_attempts = 0
             last_count = current_count
         
-        # Прокручиваем контейнер
         if scroll_container:
             driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scroll_container)
         time.sleep(2)
         
-        # Дополнительная прокрутка всей страницы
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(1)
         
@@ -137,7 +129,6 @@ def extract_image_urls(driver, timeout=60):
     
     print(f"Итого собрано фото: {len(all_src_urls)}")
     return list(all_src_urls)[:150], list(all_post_urls)[:150]
-
 
 def get_imgs(urls):
     photos = []
@@ -150,7 +141,6 @@ def get_imgs(urls):
             print(f"Failed {url}: {e}")
     return photos
 
-
 def extract_after_photo(url):
     """Извлекает ID фото из URL"""
     if "photo" in url:
@@ -158,7 +148,6 @@ def extract_after_photo(url):
         return url[photo_index + len("photo"):]
     else:
         return None
-
 
 def process_single_photo(photo: bytes) -> Optional[List[Dict]]:
     try:
@@ -192,7 +181,6 @@ def process_single_photo(photo: bytes) -> Optional[List[Dict]]:
     except Exception:
         return None
 
-
 def process_batch(photos_batch: List[bytes]) -> List[Dict]:
     results = []
     for photo in photos_batch:
@@ -200,7 +188,6 @@ def process_batch(photos_batch: List[bytes]) -> List[Dict]:
         if result:
             results.extend(result)
     return results
-
 
 def process_imgs_parallel(photos: List[bytes], eps: float = 0.5, 
                          min_samples: int = 2, use_process_pool: bool = False,
@@ -293,7 +280,6 @@ def process_imgs_parallel(photos: List[bytes], eps: float = 0.5,
     
     return max_len, max_cluster
 
-
 def get_vk_driver():
     """Создает и возвращает настроенный WebDriver для VK"""
     log_dir = "C:\\temp\\selenium_logs"
@@ -318,37 +304,30 @@ def get_vk_driver():
     driver = webdriver.Chrome(options=options)
     return driver
 
-
 def get_liker_urls_for_one(driver, photo_url, user_profile_url):
     """Получает список URL лайкнувших пользователей"""
     liker_urls = []
     
-    # Извлекаем ID фото из URL
     photo_id = extract_after_photo(photo_url)
     if not photo_id:
         print(f"Не удалось извлечь ID фото из URL: {photo_url}")
         return liker_urls
     
-    # Формируем URL БЕЗ двойного кодирования
-    # Используем незакодированный формат
     likes_url = f"{user_profile_url}?w=likes/photo{photo_id}"
     
     print(f"Открываем URL лайков: {likes_url}")
     driver.get(likes_url)
     
-    # Драйвер сам правильно закодирует URL
     time.sleep(3)
     
     try:
-        # Ждем загрузки
+        
         wait = WebDriverWait(driver, 10)
         wait.until(EC.presence_of_element_located((By.CLASS_NAME, "fans_fan_ph")))
         
-        # Прокручиваем для загрузки всех лайков
         scroll_to_bottom(driver)
         time.sleep(2)
         
-        # Собираем лайкеров
         likers = driver.find_elements(By.CLASS_NAME, "fans_fan_ph")
         for liker in likers:
             href = liker.get_attribute('href')
@@ -364,7 +343,6 @@ def get_liker_urls_for_one(driver, photo_url, user_profile_url):
     
     return liker_urls
 
-
 def get_friends(driver, link):
     """Ищет кнопку 'Показать еще' для загрузки дополнительных друзей"""
     print(f"Загружаем {link}")
@@ -372,7 +350,6 @@ def get_friends(driver, link):
     
     time.sleep(3)
     
-    # Получаем количество
     try:
         active_tab = driver.find_element(By.CSS_SELECTOR, ".vkuiTabsItem__selected")
         counter = active_tab.find_element(By.CSS_SELECTOR, ".vkuiTabsItem__status")
@@ -385,7 +362,7 @@ def get_friends(driver, link):
     last_count = 0
     
     while True:
-        # Получаем текущие ссылки
+        
         elements = driver.find_elements(By.CSS_SELECTOR, "a.vkitLink__link--b0dQw")
         for elem in elements:
             href = elem.get_attribute('href')
@@ -398,17 +375,16 @@ def get_friends(driver, link):
             break
         
         if len(friends) == last_count:
-            # Пробуем найти кнопку "Показать еще"
+            
             try:
                 show_more = driver.find_element(By.XPATH, "//button[contains(text(), 'Показать еще')]")
                 show_more.click()
                 time.sleep(2)
             except:
-                # Если кнопки нет, пробуем скролл
+                
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(2)
                 
-                # Проверяем, изменилось ли количество
                 new_elements = driver.find_elements(By.CSS_SELECTOR, "a.vkitLink__link--b0dQw")
                 if len(new_elements) == last_count or len(new_elements) > 3000:
                     break
@@ -420,25 +396,22 @@ def get_friends(driver, link):
     print(f"Итого друзей: {len(friends)}")
     return list(friends), total_friends
 
-
 def init_deepface():
     """Инициализация модели DeepFace (однократно)"""
     DeepFace.build_model("Facenet512")
-
 
 def extract_user_id_from_vk_url(url):
     if not url or not isinstance(url, str):
         return None
 
-    # 1. Прямое извлечение ID из /audios722465521 или /id123456
     match_direct = re.search(r'/(?:audios|id|club|public)(\d+)', url)
     if match_direct:
         return match_direct.group(1)
     return None
 
-
 def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None, 
-                  should_close_driver: bool = True) -> Dict[str, Any]:
+                  should_close_driver: bool = True,
+                  vk_access_token: str = None) -> Dict[str, Any]:
     """
     Парсит данные пользователя VK и возвращает результат в формате JSON.
     
@@ -446,6 +419,7 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         vk_url: URL профиля VK
         driver: опционально переданный WebDriver (если None, создается новый)
         should_close_driver: закрывать ли driver после завершения
+        vk_access_token: токен доступа VK API (для получения пола/возраста/города)
     
     Returns:
         Dict с данными пользователя
@@ -465,8 +439,25 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
             'pictures': 0,
             'friends': 0,
             'likes_pics_med': 0,
-            'vk_url': vk_url
+            'vk_url': vk_url,
+            # Новые поля
+            'sex': None,
+            'age': None,
+            'city': None,
+            'country': None
         }
+        
+        # ========== НОВЫЙ КОД: Получаем пол, возраст и город через VK API ==========
+        try:
+            vk_user_info = get_user_info_with_consent(vk_url, consent=True, access_token=vk_access_token)
+            features['sex'] = vk_user_info.get('sex')
+            features['age'] = vk_user_info.get('age')
+            features['city'] = vk_user_info.get('city')
+            features['country'] = vk_user_info.get('country')
+            logger.info(f"VK API info: пол={features['sex']}, возраст={features['age']}, город={features['city']}")
+        except Exception as e:
+            logger.warning(f"Не удалось получить данные через VK API: {e}")
+        # ========== КОНЕЦ НОВОГО КОДА ==========
         
         # Переходим на главную страницу VK
         driver.get('https://vk.com')
@@ -479,7 +470,7 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         
         user_liks = {}
         user_liks['music'] = audio_links[1].get_attribute("href")
-        vk_user_id = extract_user_id_from_vk_url(user_liks['music'])
+        vk_user_id = extract_user_id_from_url(user_liks['music'])
         
         if not vk_user_id:
             raise Exception("Не удалось извлечь ID пользователя VK")
@@ -513,9 +504,7 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         
         # Получаем лайки на портретах
         friend_likes_per_portrait = []
-        friend_likes_per_portrait = []
         for url in portrait_urls:
-            # Передаем vk_url (URL профиля) вместо user_liks['avatars'] (URL альбома)
             liker_urls = get_liker_urls_for_one(driver, url, vk_url)
             common_elements = set(liker_urls) & set(friends)
             friend_likes_per_portrait.append(len(common_elements))
@@ -542,32 +531,36 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
             driver.quit()
 
 
-# Функция для вызова через API Flask
-def parse_vk_data_api(vk_url: str, consent: bool = True) -> Dict[str, Any]:
-    """
-    API-совместимая обертка для parse_vk_data.
+
+def parse_vk_data_api(vk_url: str, consent: bool = True, 
+                      vk_access_token: str = None) -> Dict[str, Any]:
     
-    Args:
-        vk_url: URL профиля VK
-        consent: согласие на обработку данных
-    
-    Returns:
-        Dict с данными пользователя
-    """
+    vk_access_token = os.getenv('VK_API_KEY')
+
     if not consent:
         raise ValueError("Необходимо согласие на обработку данных")
     
     if not vk_url or not isinstance(vk_url, str):
         raise ValueError("Неверный URL VK")
     
-    # Создаем driver и парсим
+
     driver = get_vk_driver()
     try:
-        result = parse_vk_data(vk_url, driver=driver, should_close_driver=False)
-        get_user_traits({'user_id': [result['user_id']], 'pictures': [result['pictures']], 'friends': [result['friends']], 'likes_pics_med': [result['likes_pics_med']]})
+        result = parse_vk_data(vk_url, driver=driver, should_close_driver=False, 
+                               vk_access_token=vk_access_token)
+     
+        user_features = {
+            'user_id': [result['user_id']],
+            'pictures': [result['pictures']],
+            'friends': [result['friends']],
+            'likes_pics_med': [result['likes_pics_med']],
+            'sex': [result.get('sex')],
+            'age': [result.get('age')],
+            'city': [result.get('city')]
+        }
+        get_user_traits(user_features)
         return result
     finally:
         driver.quit()
 
 
-#parse_vk_data_api('https://vk.com/marauderofrock')

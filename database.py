@@ -1,6 +1,9 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def get_db_connection():
     """Создает подключение к базе данных PostgreSQL"""
@@ -8,8 +11,8 @@ def get_db_connection():
         conn = psycopg2.connect(
             host="localhost",
             database="music_db",
-            user="postgres",  # Замените на вашего пользователя
-            password="560730"  # Замените на ваш пароль
+            user=os.getenv('DB_USER'), 
+            password=os.getenv('DB_PASSWORD')  
         )
         return conn
     except psycopg2.Error as e:
@@ -22,7 +25,7 @@ def init_db():
     cur = conn.cursor()
     
     try:
-        # Создание таблицы пользователей
+        
         cur.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -33,7 +36,6 @@ def init_db():
             )
         """)
         
-        # Создание таблицы треков
         cur.execute("""
             CREATE TABLE IF NOT EXISTS tracks (
                 id SERIAL PRIMARY KEY,
@@ -46,7 +48,6 @@ def init_db():
             )
         """)
         
-        # Создание таблицы избранного
         cur.execute("""
             CREATE TABLE IF NOT EXISTS favorites (
                 user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -80,7 +81,6 @@ def init_db():
                 
                 -- Открытость новому опыту (любопытство, креативность)
                 openness  INTEGER,
-                
                 
                 -- Проверка, что хотя бы одно поле заполнено (необязательно)
                 CONSTRAINT has_data CHECK (

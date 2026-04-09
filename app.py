@@ -7,12 +7,11 @@ from survey import survey_bp
 from vk_parser_bp import vk_bp
 from admin_bp import admin_bp
 from stats_bp import stats_bp
+from history_bp import history_bp
 from recommendations import MusicRecommender
 import logging
 import os
 
-
-# Настройка простого логгера
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -27,23 +26,24 @@ app = Flask(__name__,
 
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 
-CORS(app)
+CORS(app, 
+     supports_credentials=True, 
+     origins=["http://localhost:5000", "http://127.0.0.1:5000"])
 
-# Регистрируем blueprints
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(tracks_bp, url_prefix='/api')
 app.register_blueprint(favorites_bp, url_prefix='/api')
+app.register_blueprint(history_bp, url_prefix='/api')
 app.register_blueprint(survey_bp)
 app.register_blueprint(vk_bp)
 app.register_blueprint(admin_bp)
-app.register_blueprint(stats_bp)
+app.register_blueprint(stats_bp, url_prefix='/api')
 
 recommender = MusicRecommender()
 
 @app.route("/admin")
 def admin_page():
     return render_template("admin/dashboard.html")
-
 
 @app.route("/api/recommendations/<username>", methods=['GET'])
 def get_recommendations(username):
@@ -63,7 +63,6 @@ def get_recommendations(username):
         logger.error(f"Ошибка получения рекомендаций: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-
 @app.route("/api/similar_users/<username>", methods=['GET'])
 def get_similar_users(username):
     """Получить похожих пользователей (для отладки)"""
@@ -77,7 +76,6 @@ def get_similar_users(username):
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
 
 @app.route("/api/user_stats/<username>", methods=['GET'])
 def get_user_stats(username):
@@ -93,18 +91,15 @@ def get_user_stats(username):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-
 @app.route("/feed/<user_name>")
 def feed(user_name):
-    # ВАЖНО: используем render_template, а не send_from_directory
+    
     return render_template("index.html", username=user_name)
-
 
 @app.route("/favorites/<username>")
 def favorites_page(username):
     """Страница с избранными треками пользователя"""
     return render_template("favorites.html", username=username)
-
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -114,40 +109,32 @@ def login():
         username = request.form.get('username')
         return redirect(url_for('feed', user_name=username))
 
-
 @app.route("/register")
 def register():
     return render_template('register.html')
-
 
 @app.route("/auth_choice/<username>")
 def auth_choice(username):
     return send_from_directory('static', "auth_choice.html")
 
-
 @app.route("/")
 def re_route():
     return redirect(url_for('login'))
 
-
-# Добавьте маршрут для JS файлов на всякий случай
 @app.route('/js/<path:filename>')
 def serve_js(filename):
     return send_from_directory('static/js', filename)
-
 
 @app.route("/api/recommendations/<username>/next", methods=['GET'])
 def get_next_recommendation(username):
     """Получить следующий трек для замены"""
     try:
-        # Получаем текущие рекомендации
+        
         current_recommendations = request.args.get('current_ids', '').split(',')
         current_ids = [int(id) for id in current_recommendations if id]
         
-        # Получаем новые рекомендации
         recommendations = recommender.get_recommendations(username, top_n=30)
         
-        # Находим трек, которого нет в текущих
         for track in recommendations:
             if track['id'] not in current_ids:
                 return jsonify({
@@ -160,10 +147,6 @@ def get_next_recommendation(username):
         logger.error(f"Ошибка: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
     
-
-
-    # Добавьте эти маршруты в app.py после существующих
-
 @app.route("/api/recommendations/mood/<username>/<mood>", methods=['GET'])
 def get_mood_recommendations(username, mood):
     """Получить рекомендации по настроению"""
@@ -201,11 +184,15 @@ def get_diverse_recommendations(username):
         logger.error(f"Ошибка получения разнообразных рекомендаций: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-
 @app.route("/history/<username>")
 def history_page(username):
     """Страница с историей прослушивания"""
     return render_template("history.html", username=username)
+
+@app.route("/stats/<username>")
+def stats_page(username):
+    """Страница статистики пользователя"""
+    return render_template("stats.html", username=username)
 
 if __name__ == '__main__':
     app.run(debug=True)

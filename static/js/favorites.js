@@ -1,5 +1,24 @@
 const API_BASE = 'http://localhost:5000/api';
 
+async function addToHistory(trackId) {
+    const token = localStorage.getItem('token');
+    if (!token) return; 
+
+    try {
+        await fetch(`${API_BASE}/history`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ track_id: trackId })
+        });
+        
+    } catch (error) {
+        console.error('Ошибка сохранения истории:', error);
+    }
+}
+
 function saveToRecentlyPlayed(track) {
     try {
         const STORAGE_KEY = 'recently_played_tracks';
@@ -9,7 +28,6 @@ function saveToRecentlyPlayed(track) {
         let history = stored ? JSON.parse(stored) : [];
         
         history = history.filter(t => t.id !== track.id);
-        
         history.unshift({
             ...track,
             played_at: new Date().toISOString()
@@ -18,7 +36,6 @@ function saveToRecentlyPlayed(track) {
         if (history.length > MAX_HISTORY) {
             history = history.slice(0, MAX_HISTORY);
         }
-        
         localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
     } catch (error) {
         console.error('Ошибка сохранения истории:', error);
@@ -38,7 +55,10 @@ document.addEventListener('play', function(e) {
                 cover_url: trackCard.querySelector('.track-cover')?.src || '',
                 file_url: audio.src
             };
+            
             saveToRecentlyPlayed(track);
+            
+            addToHistory(track.id);
         }
     }
 }, true);
