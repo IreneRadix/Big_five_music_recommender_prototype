@@ -257,57 +257,7 @@ async function loadReplacementTrack() {
 
 // Добавление в избранное
 async function addToFavorites(trackId, button) {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-        alert('Войдите, чтобы добавить в избранное');
-        return;
-    }
-    
-    const originalText = button.textContent;
-    button.textContent = '⏳ Добавление...';
-    button.disabled = true;
-    
-    try {
-        const res = await fetch(`${API_BASE}/favorites`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ track_id: trackId })
-        });
-        
-        if (res.ok) {
-            button.innerHTML = '✅ В избранном';
-            button.style.opacity = '0.6';
-            
-            const trackCard = button.closest('.track-card');
-            if (trackCard) {
-                trackCard.style.transition = 'all 0.3s ease';
-                trackCard.style.opacity = '0.5';
-                trackCard.style.transform = 'translateX(20px)';
-                
-                setTimeout(() => {
-                    trackCard.remove();
-                    updateTrackNumbers();
-                    showNotification('Трек добавлен в избранное!', 'success');
-                    loadReplacementTrack();
-                    updateFavoritesCount();
-                }, 300);
-            }
-        } else {
-            const data = await res.json();
-            alert(data.error || 'Ошибка при добавлении в избранное');
-            button.textContent = originalText;
-            button.disabled = false;
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Ошибка соединения');
-        button.textContent = originalText;
-        button.disabled = false;
-    }
+    await addToFavoritesFromSection(trackId, button);
 }
 
 // Пропуск трека
@@ -505,8 +455,233 @@ if (!document.querySelector('style[data-dynamic]')) {
     document.head.appendChild(style);
 }
 
+
+
+
+// Добавьте эти функции в main.js
+
+// Конфигурация разделов
+const sections = {
+    general: { 
+        endpoint: (username) => `${API_BASE}/recommendations/${username}?limit=15`,
+        isPersonalized: true
+    },
+    energetic: { 
+        endpoint: (username) => `${API_BASE}/recommendations/mood/${username}/energetic?limit=10`,
+        isPersonalized: true
+    },
+    calm: { 
+        endpoint: (username) => `${API_BASE}/recommendations/mood/${username}/calm?limit=10`,
+        isPersonalized: true
+    },
+    happy: { 
+        endpoint: (username) => `${API_BASE}/recommendations/mood/${username}/happy?limit=10`,
+        isPersonalized: true
+    },
+    sad: { 
+        endpoint: (username) => `${API_BASE}/recommendations/mood/${username}/sad?limit=10`,
+        isPersonalized: true
+    },
+    romantic: { 
+        endpoint: (username) => `${API_BASE}/recommendations/mood/${username}/romantic?limit=10`,
+        isPersonalized: true
+    },
+    diverse: { 
+        endpoint: (username) => `${API_BASE}/recommendations/diverse/${username}?limit=12`,
+        isPersonalized: true
+    }
+};
+
+// Загрузка рекомендаций для конкретного раздела
+async function loadSectionRecommendations(sectionId) {
+    const username = getCurrentUsername();
+    const container = document.getElementById(`${sectionId}-recommendations`);
+    
+    if (!container) return;
+    
+    const section = sections[sectionId];
+    if (!section) return;
+    
+    container.innerHTML = '<div class="loading">🎵 Загрузка рекомендаций...</div>';
+    
+    try {
+        let tracks = [];
+        
+        if (username && section.isPersonalized) {
+            const response = await fetch(section.endpoint(username));
+            const data = await response.json();
+            
+            if (data.success && data.recommendations) {
+                tracks = data.recommendations;
+            } else {
+                throw new Error(data.error || 'Ошибка загрузки');
+            }
+        } else {
+            // Если пользователь не авторизован, показываем глобальные рекомендации
+            const response = await fetch(`${API_BASE}/recommendations?limit=15`);
+            tracks = await response.json();
+            if (Array.isArray(tracks)) {
+                tracks = tracks.map(t => ({ ...t, recommendation_reason: 'Популярный трек' }));
+            }
+        }
+        
+        if (tracks && tracks.length > 0) {
+            displaySectionTracks(tracks, container);
+        } else {
+            container.innerHTML = '<div class="no-recommendations">😔 Нет рекомендаций в этом разделе. Добавьте больше треков в избранное!</div>';
+        }
+    } catch (error) {
+        console.error(`Ошибка загрузки раздела ${sectionId}:`, error);
+        container.innerHTML = '<div class="no-recommendations">❌ Ошибка загрузки рекомендаций</div>';
+    }
+}
+
+// Отображение треков в разделе
+function displaySectionTracks(tracks, container) {
+    const gridContainer = document.createElement('div');
+    gridContainer.className = 'recommendations-grid';
+    
+    tracks.forEach((track, index) => {
+        const trackCard = document.createElement('div');
+        trackCard.className = 'track-card';
+        trackCard.setAttribute('data-track-id', track.id);
+        trackCard.innerHTML = `
+            <div class="track-number">${index + 1}</div>
+            <img src="${track.cover_url || '/static/default_cover.jpg'}" 
+                 alt="cover" 
+                 class="track-cover"
+                 onerror="this.src='/static/default_cover.jpg'">
+            <div class="track-info">
+                <div class="track-title">${escapeHtml(track.title)}</div>
+                <div class="track-artist">${escapeHtml(track.artist)}</div>
+                ${track.genre ? `<div class="track-genre">🎵 ${escapeHtml(track.genre)}</div>` : ''}
+                <div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>
+            </div>
+            <div class="track-actions">
+                <button onclick="addToFavoritesFromSection(${track.id}, this)" class="fav-btn">
+                    ❤️ В избранное
+                </button>
+                <audio controls src="${track.file_url}" class="audio-player" preload="none"></audio>
+            </div>
+        `;
+        gridContainer.appendChild(trackCard);
+    });
+    
+    container.innerHTML = '';
+    container.appendChild(gridContainer);
+}
+
+
+
+// Добавление в избранное из любого раздела
+async function addToFavoritesFromSection(trackId, button) {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        alert('Войдите, чтобы добавить в избранное');
+        return;
+    }
+    
+    const originalText = button.textContent;
+    button.textContent = '⏳ Добавление...';
+    button.disabled = true;
+    
+    try {
+        const res = await fetch(`${API_BASE}/favorites`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ track_id: trackId })
+        });
+        
+        if (res.ok) {
+            button.innerHTML = '✅ В избранном';
+            button.style.opacity = '0.6';
+            button.disabled = true;
+            showNotification('Трек добавлен в избранное!', 'success');
+            updateFavoritesCount();
+        } else {
+            const data = await res.json();
+            alert(data.error || 'Ошибка при добавлении в избранное');
+            button.textContent = originalText;
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка соединения');
+        button.textContent = originalText;
+        button.disabled = false;
+    }
+}
+
+// Инициализация табов
+function initTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Загружаем активный раздел
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+        const sectionId = activeTab.dataset.tab;
+        loadSectionRecommendations(sectionId);
+    }
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const sectionId = btn.dataset.tab;
+            
+            // Обновляем активные кнопки
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Обновляем активный контент
+            tabContents.forEach(content => content.classList.remove('active'));
+            const activeContent = document.getElementById(`tab-${sectionId}`);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+            
+            // Загружаем рекомендации для выбранного раздела
+            await loadSectionRecommendations(sectionId);
+        });
+    });
+}
+
+// Обновленная функция загрузки всех рекомендаций
+async function loadAllRecommendations() {
+    const username = getCurrentUsername();
+    
+    if (username) {
+        // Обновляем отображение имени пользователя
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        if (usernameDisplay) {
+            usernameDisplay.textContent = username;
+        }
+        
+        // Загружаем статистику
+        await updateFavoritesCount();
+    }
+    
+    // Загружаем только активный раздел
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+        await loadSectionRecommendations(activeTab.dataset.tab);
+    }
+}
+
+// Обновляем инициализацию
+if (window.location.pathname.includes('/feed/')) {
+    document.addEventListener('DOMContentLoaded', () => {
+        initTabs();
+        loadAllRecommendations();
+    });
+}
+
 // Инициализация при загрузке страницы
 if (window.location.pathname === '/' || 
     window.location.pathname.includes('/feed/')) {
     document.addEventListener('DOMContentLoaded', loadRecommendations);
 }
+
