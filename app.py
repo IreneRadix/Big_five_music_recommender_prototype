@@ -194,5 +194,10 @@ def get_diverse_recommendations(username):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route("/history/<username>")
+def history_page(username):
+    """Страница с историей прослушивания"""
+    return render_template("history.html", username=username)
+
 if __name__ == '__main__':
     app.run(debug=True)
