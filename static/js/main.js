@@ -679,6 +679,54 @@ if (window.location.pathname.includes('/feed/')) {
     });
 }
 
+// Функция для сохранения трека в историю прослушивания
+function saveToRecentlyPlayed(track) {
+    try {
+        const STORAGE_KEY = 'recently_played_tracks';
+        const MAX_HISTORY = 20;
+        
+        const stored = localStorage.getItem(STORAGE_KEY);
+        let history = stored ? JSON.parse(stored) : [];
+        
+        // Удаляем трек, если он уже есть в истории
+        history = history.filter(t => t.id !== track.id);
+        
+        // Добавляем в начало с временной меткой
+        history.unshift({
+            ...track,
+            played_at: new Date().toISOString()
+        });
+        
+        // Ограничиваем размер
+        if (history.length > MAX_HISTORY) {
+            history = history.slice(0, MAX_HISTORY);
+        }
+        
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    } catch (error) {
+        console.error('Ошибка сохранения истории:', error);
+    }
+}
+// Добавить в конец файла или в инициализацию
+document.addEventListener('play', function(e) {
+    const audio = e.target;
+    if (audio.classList.contains('audio-player')) {
+        const trackCard = audio.closest('.track-card');
+        if (trackCard) {
+            const track = {
+                id: parseInt(trackCard.dataset.trackId),
+                title: trackCard.querySelector('.track-title')?.textContent || 'Неизвестный трек',
+                artist: trackCard.querySelector('.track-artist')?.textContent || 'Неизвестный исполнитель',
+                genre: trackCard.querySelector('.track-genre')?.textContent?.replace('🎵 ', '') || '',
+                cover_url: trackCard.querySelector('.track-cover')?.src || '',
+                file_url: audio.src
+            };
+            saveToRecentlyPlayed(track);
+        }
+    }
+}, true);
+
+
 // Инициализация при загрузке страницы
 if (window.location.pathname === '/' || 
     window.location.pathname.includes('/feed/')) {
