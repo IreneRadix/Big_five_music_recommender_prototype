@@ -151,6 +151,47 @@ def get_next_recommendation(username):
     except Exception as e:
         logger.error(f"Ошибка: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+    
+
+
+    # Добавьте эти маршруты в app.py после существующих
+
+@app.route("/api/recommendations/mood/<username>/<mood>", methods=['GET'])
+def get_mood_recommendations(username, mood):
+    """Получить рекомендации по настроению"""
+    top_n = request.args.get('limit', 10, type=int)
+    
+    try:
+        recommendations = recommender.get_mood_based_recommendations(username, mood, top_n)
+        
+        return jsonify({
+            'success': True,
+            'username': username,
+            'mood': mood,
+            'recommendations': recommendations,
+            'count': len(recommendations)
+        })
+    except Exception as e:
+        logger.error(f"Ошибка получения рекомендаций по настроению: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route("/api/recommendations/diverse/<username>", methods=['GET'])
+def get_diverse_recommendations(username):
+    """Получить разнообразные рекомендации (из разных жанров)"""
+    top_n = request.args.get('limit', 20, type=int)
+    
+    try:
+        recommendations = recommender.get_diverse_recommendations(username, top_n)
+        
+        return jsonify({
+            'success': True,
+            'username': username,
+            'recommendations': recommendations,
+            'count': len(recommendations)
+        })
+    except Exception as e:
+        logger.error(f"Ошибка получения разнообразных рекомендаций: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':

@@ -362,3 +362,192 @@ class MusicRecommender:
                         break
         
         return recommendations
+
+    def get_mood_based_recommendations(self, username, mood, top_n=10):
+        """
+        Получить рекомендации на основе настроения для возрастной категории 35-50 лет
+        mood: 'energetic', 'calm', 'sad', 'happy', 'romantic'
+        """
+        user_id = self.get_user_id_by_username(username)
+        if not user_id:
+            return []
+        
+        # Маппинг настроений на конкретные песни и исполнителей для возраста 35-50
+        mood_songs = {
+            'energetic': {
+                'songs': [
+                    'Nirvana', 'Smells Like Teen Spirit', 'Metallica', 'Enter Sandman',
+                    'AC/DC', 'Back in Black', 'Queen', 'We Will Rock You',
+                    'Guns N Roses', 'Welcome to the Jungle', 'The Prodigy', 'Smack My Bitch Up'
+                ],
+                'description': 'Энергичные хиты 80-90х'
+            },
+            'calm': {
+                'songs': [
+                    'Enya', 'Only Time', 'Sting', 'Fields of Gold', 'Eric Clapton', 'Tears in Heaven',
+                    'Norah Jones', 'Come Away With Me', 'Simon & Garfunkel', 'The Sound of Silence',
+                    'George Michael', 'Careless Whisper', 'Radiohead', 'Creep'
+                ],
+                'description': 'Спокойная классика для релаксации'
+            },
+            'sad': {
+                'songs': [
+                    'Gary Moore', 'Still Got the Blues', 'Eric Clapton', 'Tears in Heaven',
+                    'Nirvana', 'Something in the Way', 'Adele', 'Someone Like You',
+                    'Sinead O\'Connor', 'Nothing Compares 2 U', 'The Cranberries', 'Zombie',
+                    'Radiohead', 'No Surprises', 'Coldplay', 'The Scientist'
+                ],
+                'description': 'Душевные баллады и блюз'
+            },
+            'happy': {
+                'songs': [
+                    'ABBA', 'Dancing Queen', 'The Beatles', 'Here Comes the Sun',
+                    'Michael Jackson', 'Billie Jean', 'Pharrell Williams', 'Happy',
+                    'Queen', 'Don\'t Stop Me Now', 'Bruno Mars', 'Uptown Funk',
+                    'Earth Wind & Fire', 'September', 'Mark Ronson', 'Uptown Funk'
+                ],
+                'description': 'Позитивные хиты для хорошего настроения'
+            },
+            'romantic': {
+                'songs': [
+                    'Whitney Houston', 'I Will Always Love You', 'Elvis Presley', 'Can\'t Help Falling in Love',
+                    'Bryan Adams', 'Everything I Do', 'Celine Dion', 'My Heart Will Go On',
+                    'The Beatles', 'Something', 'Lionel Richie', 'Hello',
+                    'Berlin', 'Take My Breath Away', 'Aerosmith', 'I Don\'t Want to Miss a Thing'
+                ],
+                'description': 'Романтические баллады'
+            }
+        }
+        
+        if mood not in mood_songs:
+            mood = 'happy'
+        
+        mood_config = mood_songs[mood]
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        try:
+            # Получаем избранные треки пользователя
+            user_track_ids = self.get_user_favorite_track_ids(username)
+            
+            # Формируем условие для поиска песен
+            search_conditions = []
+            search_params = []
+            
+            for item in mood_config['songs']:
+                search_conditions.append("(t.title ILIKE %s OR t.artist ILIKE %s)")
+                search_params.append(f'%{item}%')
+                search_params.append(f'%{item}%')
+            
+            # Исправленный запрос - убираем ORDER BY RANDOM() и используем просто ORDER BY likes_count
+            # и добавляем LIMIT с запасом, потом перемешаем в Python
+            query = f"""
+                SELECT DISTINCT 
+                    t.id,
+                    t.title,
+                    t.artist,
+                    t.genre,
+                    t.cover_url,
+                    t.file_url,
+                    COALESCE(COUNT(f.user_id), 0) as likes_count
+                FROM tracks t
+                LEFT JOIN favorites f ON t.id = f.track_id
+                WHERE ({' OR '.join(search_conditions)})
+                AND t.id != ALL(%s)
+                GROUP BY t.id, t.title, t.artist, t.genre, t.cover_url, t.file_url
+                ORDER BY likes_count DESC
+                LIMIT %s
+            """
+            
+            cur.execute(query, search_params + [list(user_track_ids) if user_track_ids else [-1], top_n * 2])
+            
+            tracks = cur.fetchall()
+            
+            # Перемешиваем результаты для разнообразия
+            import random
+            random.shuffle(tracks)
+            
+            # Добавляем пояснение к рекомендациям
+            for track in tracks[:top_n]:
+                track['recommendation_reason'] = mood_config['description']
+            
+            return tracks[:top_n]
+            
+        except Exception as e:
+            logger.error(f"Ошибка получения рекомендаций по настроению: {e}")
+            return []
+        finally:
+            cur.close()
+            conn.close()
+
+
+    def get_diverse_recommendations(self, username, top_n=20):
+        """
+        Получить разнообразные рекомендации (хиты 80-90-х для возрастной категории 35-50)
+        """
+        user_id = self.get_user_id_by_username(username)
+        if not user_id:
+            return []
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        try:
+            # Получаем избранные треки пользователя
+            user_track_ids = self.get_user_favorite_track_ids(username)
+            
+            # Список популярных исполнителей и песен для возраста 35-50
+            popular_songs = [
+                'Queen', 'Freddie Mercury', 'Bohemian Rhapsody', 'The Beatles', 'Let It Be',
+                'Michael Jackson', 'Thriller', 'Madonna', 'Like a Prayer', 'Prince', 'Purple Rain',
+                'U2', 'With or Without You', 'Bon Jovi', 'Livin\' on a Prayer', 'Guns N Roses',
+                'Sweet Child O Mine', 'Nirvana', 'Come as You Are', 'Metallica', 'Nothing Else Matters',
+                'Red Hot Chili Peppers', 'Californication', 'Radiohead', 'Karma Police',
+                'Oasis', 'Wonderwall', 'Blur', 'Song 2', 'Spice Girls', 'Wannabe',
+                'Backstreet Boys', 'I Want It That Way', 'Britney Spears', 'Baby One More Time'
+            ]
+            
+            # Формируем условия поиска
+            search_conditions = []
+            search_params = []
+            
+            for song in popular_songs:
+                search_conditions.append("(t.title ILIKE %s OR t.artist ILIKE %s)")
+                search_params.append(f'%{song}%')
+                search_params.append(f'%{song}%')
+            
+            # Исправленный запрос
+            query = f"""
+                SELECT DISTINCT 
+                    t.id,
+                    t.title,
+                    t.artist,
+                    t.genre,
+                    t.cover_url,
+                    t.file_url,
+                    COALESCE(COUNT(f.user_id), 0) as likes_count
+                FROM tracks t
+                LEFT JOIN favorites f ON t.id = f.track_id
+                WHERE ({' OR '.join(search_conditions)})
+                AND t.id != ALL(%s)
+                GROUP BY t.id, t.title, t.artist, t.genre, t.cover_url, t.file_url
+                ORDER BY likes_count DESC
+                LIMIT %s
+            """
+            
+            cur.execute(query, search_params + [list(user_track_ids) if user_track_ids else [-1], top_n])
+            
+            tracks = cur.fetchall()
+            
+            for track in tracks:
+                track['recommendation_reason'] = 'Хиты 80-90-х, проверенные временем'
+            
+            return tracks
+            
+        except Exception as e:
+            logger.error(f"Ошибка получения разнообразных рекомендаций: {e}")
+            return self.get_global_popular_tracks(top_n)
+        finally:
+            cur.close()
+            conn.close()
