@@ -194,7 +194,7 @@ function appendTrackToEnd(track, newNumber) {
                 <div class="track-title">${escapeHtml(track.title)}</div>
                 <div class="track-artist">${escapeHtml(track.artist)}</div>
                 ${track.genre ? `<div class="track-genre">🎵 ${escapeHtml(track.genre)}</div>` : ''}
-                <div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>
+                <!--<div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>-->
             </div>
             <div class="track-actions">
                 <button onclick="addToFavorites(${track.id}, this)" class="fav-btn">
@@ -368,7 +368,7 @@ function displayRecommendations(tracks, stats) {
                 <div class="track-title">${escapeHtml(track.title)}</div>
                 <div class="track-artist">${escapeHtml(track.artist)}</div>
                 ${track.genre ? `<div class="track-genre">🎵 ${escapeHtml(track.genre)}</div>` : ''}
-                <div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>
+                <!--<div class="track-reason">💡 ${track.recommendation_reason || 'Рекомендовано для вас'}</div>-->
             </div>
             <div class="track-actions">
                 <button onclick="addToFavorites(${track.id}, this)" class="fav-btn">
