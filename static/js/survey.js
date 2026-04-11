@@ -87,7 +87,7 @@ class PaginatedSurveyComponent {
                 <div class="question-item" data-question-index="${globalIndex}">
                     <div class="question-text">
                         ${globalIndex + 1}. ${question}
-                        <span class="question-group">(Группа ${groupNumber})</span>
+                        <!--<span class="question-group">(Группа ${groupNumber})</span>-->
                     </div>
                     <div class="rating" id="rating-${globalIndex}">
                         ${[1,2,3,4,5].map(num => `
