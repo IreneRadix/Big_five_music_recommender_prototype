@@ -67,6 +67,9 @@
                 <a href="/history/{{ username }}" class="nav-link">🕒 История</a>
                 <a href="/favorites/{{ username }}" class="nav-link">⭐ Мои треки</a>
             </div>
+                {% if is_admin %}
+    <a href="/admin" class="nav-link">⚙️ Админ-панель</a>
+    {% endif %}
             <div class="user-info">
                 <span class="username" id="usernameDisplay">{{ username }}</span>
                 <button class="logout-btn" onclick="logout()">Выйти</button>
