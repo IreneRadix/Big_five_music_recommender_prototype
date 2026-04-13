@@ -5,6 +5,7 @@ from tracks import tracks_bp
 from favorites import favorites_bp
 from survey import survey_bp
 from vk_parser_bp import vk_bp
+from admin_bp import admin_bp
 from recommendations import MusicRecommender
 import logging
 import os
@@ -33,8 +34,13 @@ app.register_blueprint(tracks_bp, url_prefix='/api')
 app.register_blueprint(favorites_bp, url_prefix='/api')
 app.register_blueprint(survey_bp)
 app.register_blueprint(vk_bp)
+app.register_blueprint(admin_bp)
 
 recommender = MusicRecommender()
+
+@app.route("/admin")
+def admin_page():
+    return render_template("admin/dashboard.html")
 
 
 @app.route("/api/recommendations/<username>", methods=['GET'])
