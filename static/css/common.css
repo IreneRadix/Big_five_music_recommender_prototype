@@ -1,0 +1,541 @@
+/* common.css */
+@import url('./themes.css');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: var(--text-primary);
+    transition: background 0.3s ease;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Хедер */
+.header {
+    background: var(--header-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px 30px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    border: 1px solid var(--card-border);
+}
+
+.header h1 {
+    color: var(--link-color);
+    font-size: 28px;
+}
+
+[data-theme="dark"] .header h1 {
+    color: #ffffff;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    color: var(--link-color);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s;
+    background: var(--button-secondary-bg);
+    border: 1px solid var(--card-border);
+}
+
+.nav-link:hover {
+    background: var(--link-hover-bg);
+    color: var(--link-hover-text);
+    transform: translateY(-2px);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.username {
+    font-weight: bold;
+    color: var(--link-color);
+    font-size: 18px;
+}
+
+[data-theme="dark"] .username {
+    color: #ffffff;
+}
+
+.logout-btn {
+    background: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.logout-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Кнопка переключения темы */
+.theme-toggle {
+    background: var(--button-secondary-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px) rotate(10deg);
+    background: var(--link-hover-bg);
+}
+
+/* Карточки треков */
+.track-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--card-border);
+}
+
+.track-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.track-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--link-color);
+    min-width: 50px;
+}
+
+.track-cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.track-info {
+    flex: 1;
+}
+
+.track-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.track-artist {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.track-genre {
+    color: var(--genre-color);
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.track-reason {
+    color: var(--reason-text);
+    font-size: 12px;
+    background: var(--reason-bg);
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 15px;
+    margin-top: 5px;
+}
+
+.track-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.fav-btn, .skip-btn, .remove-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.fav-btn {
+    background: var(--button-primary-bg);
+    color: var(--button-primary-text);
+}
+
+.fav-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.fav-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.skip-btn {
+    background: var(--button-secondary-bg);
+    color: var(--button-secondary-text);
+}
+
+.remove-btn {
+    background: var(--button-danger-bg);
+    color: var(--button-danger-text);
+    border: 1px solid var(--card-border);
+}
+
+.remove-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.audio-player {
+    width: 250px;
+    height: 35px;
+    border-radius: 20px;
+}
+
+[data-theme="dark"] .audio-player::-webkit-media-controls-panel {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Табы */
+.tabs-container {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 10px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--card-border);
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px;
+    scrollbar-width: thin;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: var(--tab-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+    white-space: nowrap;
+    color: var(--tab-text);
+}
+
+.tab-btn:hover {
+    transform: translateY(-2px);
+    background: var(--link-hover-bg);
+}
+
+.tab-btn.active {
+    background: var(--tab-active-bg);
+    color: var(--tab-active-text);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+.section-title {
+    font-size: 24px;
+    color: var(--link-color);
+    margin-bottom: 20px;
+    padding-left: 10px;
+    border-left: 4px solid var(--genre-color);
+}
+
+[data-theme="dark"] .section-title {
+    color: #ffffff;
+}
+
+.recommendations-grid,
+.favorites-grid,
+.history-grid {
+    display: grid;
+    gap: 20px;
+}
+
+/* Состояния загрузки и пустые состояния */
+.loading {
+    text-align: center;
+    padding: 50px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    font-size: 18px;
+    color: var(--loading-text);
+    border: 1px solid var(--card-border);
+}
+
+.no-recommendations,
+.empty-favorites,
+.empty-history {
+    text-align: center;
+    padding: 50px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    font-size: 18px;
+    color: var(--text-muted);
+    border: 1px solid var(--card-border);
+}
+
+.empty-favorites a,
+.empty-history a,
+.no-recommendations a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.empty-favorites a:hover,
+.empty-history a:hover,
+.no-recommendations a:hover {
+    text-decoration: underline;
+}
+
+/* Формы авторизации */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.auth-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid var(--card-border);
+}
+
+.auth-title {
+    color: var(--link-color);
+    font-size: 28px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+[data-theme="dark"] .auth-title {
+    color: #ffffff;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.auth-input {
+    padding: 12px 16px;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    font-size: 16px;
+    background: var(--input-bg);
+    color: var(--input-text);
+    transition: border-color 0.3s;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--link-color);
+}
+
+.auth-button {
+    background: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.auth-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-secondary);
+}
+
+.auth-link {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    background: var(--button-danger-bg);
+    color: var(--button-danger-text);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.success-message {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Кнопка "Наверх" */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--card-border);
+    transition: all 0.3s;
+    opacity: 0;
+    visibility: hidden;
+    font-size: 24px;
+    z-index: 100;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.back-to-top:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .track-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .track-actions {
+        align-items: center;
+    }
+    
+    .audio-player {
+        width: 100%;
+    }
+    
+    .tabs {
+        flex-wrap: wrap;
+    }
+    
+    .header {
+        flex-direction: column;
+    }
+    
+    .nav-links {
+        justify-content: center;
+    }
+    
+    .user-info {
+        justify-content: center;
+    }
+}

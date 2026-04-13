@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Регистрация</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Музыкальный сервис</title>
+    <link rel="stylesheet" href="/static/css/common.css">
 </head>
-   <div class="auth-container">
+<body>
+    <div class="auth-container">
         <div class="auth-card">
             <h2 class="auth-title">🎵 Регистрация</h2>
             
@@ -24,7 +27,7 @@
                 <div class="form-group">
                     <label for="password">Пароль</label>
                     <input type="password" id="password" name="password" class="auth-input" placeholder="Придумайте пароль" required>
-                    <small style="color: #666; font-size: 12px;">Минимум 4 символа</small>
+                    <small style="color: var(--text-muted); font-size: 12px;">Минимум 4 символа</small>
                 </div>
                 
                 <button type="submit" class="auth-button">Зарегистрироваться</button>
@@ -35,6 +38,8 @@
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script src="/static/js/theme.js"></script>
+    <script src="/js/main.js"></script>
 </body>
 </html>

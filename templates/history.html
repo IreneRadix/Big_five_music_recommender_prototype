@@ -4,121 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>История прослушивания - Музыкальный сервис</title>
+    <link rel="stylesheet" href="/static/css/common.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #fff;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .header h1 {
-            color: #fff;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .nav-link {
-            color: #fff;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .username {
-            font-weight: bold;
-            color: #fff;
-            font-size: 18px;
-        }
-        
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
+        /* Дополнительные стили для страницы истории */
         .history-header {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-sm);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--card-border);
         }
         
         .history-count {
-            color: #aaa;
+            color: var(--text-secondary);
             font-size: 18px;
             font-weight: 500;
         }
         
         .clear-all-btn {
-            background: rgba(255, 71, 87, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 71, 87, 0.3);
+            background: var(--button-danger-bg);
+            color: var(--button-danger-text);
+            border: 1px solid var(--card-border);
             padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
@@ -126,182 +39,41 @@
         }
         
         .clear-all-btn:hover {
-            background: rgba(255, 71, 87, 0.3);
+            opacity: 0.8;
             transform: translateY(-2px);
         }
         
-        .history-grid {
-            display: grid;
-            gap: 20px;
-        }
-        
-        .track-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .track-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            background: rgba(255, 255, 255, 0.08);
-        }
-        
-        .track-cover {
-            width: 80px;
-            height: 80px;
-            border-radius: 10px;
-            object-fit: cover;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .track-info {
-            flex: 1;
-        }
-        
-        .track-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
-        }
-        
-        .track-artist {
-            color: #aaa;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .track-genre {
-            color: #9b59b6;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-
         .track-timestamp {
-            color: #666;
+            color: var(--text-muted);
             font-size: 12px;
             margin-top: 5px;
         }
         
-        .track-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-end;
-        }
-        
-        .remove-btn {
-            background: rgba(255, 71, 87, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-        
-        .remove-btn:hover {
-            background: rgba(255, 71, 87, 0.3);
-            transform: scale(1.05);
-        }
-        
-        .audio-player {
-            width: 250px;
-            height: 35px;
-            border-radius: 20px;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .audio-player::-webkit-media-controls-panel {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 50px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            font-size: 18px;
-            color: #aaa;
-        }
-        
-        .empty-history {
-            text-align: center;
-            padding: 50px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            font-size: 18px;
-            color: #999;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .empty-history a {
-            color: #9b59b6;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        
-        .empty-history a:hover {
-            text-decoration: underline;
-        }
-
-        .back-to-top {
+        .notification {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: rgba(155, 89, 182, 0.8);
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            font-size: 14px;
+            font-weight: 500;
             color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s;
-            opacity: 0;
-            visibility: hidden;
-            font-size: 24px;
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .back-to-top:hover {
-            background: rgba(155, 89, 182, 1);
-            transform: translateY(-3px);
         }
         
-        @media (max-width: 768px) {
-            .track-card {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .track-actions {
-                align-items: center;
-            }
-            
-            .audio-player {
-                width: 100%;
-            }
-            
-            .header {
-                flex-direction: column;
-            }
+        .notification-success { background: #4caf50; }
+        .notification-error { background: #ff4757; }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
         }
     </style>
 </head>
@@ -328,9 +100,9 @@
         ↑
     </div>
     
+    <script src="/static/js/theme.js"></script>
     <script src="/js/history.js"></script>
     <script>
-        // Общий функционал для страницы
         const API_BASE = 'http://localhost:5000/api';
 
         function getCurrentUsername() {
@@ -350,7 +122,6 @@
             window.location.href = '/login';
         }
 
-        // Кнопка "наверх"
         window.addEventListener('scroll', () => {
             const btn = document.querySelector('.back-to-top');
             if (window.scrollY > 300) {
@@ -360,7 +131,6 @@
             }
         });
 
-        // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
             const usernameDisplay = document.getElementById('usernameDisplay');
             const username = getCurrentUsername();
