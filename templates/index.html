@@ -4,308 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Музыкальный сервис - Рекомендации</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <!-- Дополнительные стили для страницы рекомендаций -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: white;
+        .user-info-stats {
+            background: var(--card-bg);
             border-radius: 15px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .header h1 {
-            color: #667eea;
-            font-size: 28px;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .username {
-            font-weight: bold;
-            color: #764ba2;
-            font-size: 18px;
-        }
-        
-        .logout-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .logout-btn:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .nav-link {
-            color: #667eea;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            background: #f0f0ff;
-        }
-        
-        .nav-link:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        /* Стили для табов */
-        .tabs-container {
-            background: white;
-            border-radius: 15px;
-            padding: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding: 10px;
-            scrollbar-width: thin;
-        }
-        
-        .tab-btn {
-            padding: 12px 24px;
-            background: #f0f0ff;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s;
-            white-space: nowrap;
-            color: #667eea;
-        }
-        
-        .tab-btn:hover {
-            transform: translateY(-2px);
-            background: #e0e0ff;
-        }
-        
-        .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .section-title {
-            font-size: 24px;
-            color: #667eea;
+            padding: 15px 25px;
             margin-bottom: 20px;
-            padding-left: 10px;
-            border-left: 4px solid #764ba2;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            color: var(--genre-color);
+            font-weight: 500;
+            border: 1px solid var(--card-border);
         }
         
-        .recommendations-grid {
-            display: grid;
-            gap: 20px;
-        }
-        
-        .track-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .track-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .track-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-            min-width: 50px;
-        }
-        
-        .track-cover {
-            width: 80px;
-            height: 80px;
-            border-radius: 10px;
-            object-fit: cover;
-        }
-        
-        .track-info {
-            flex: 1;
-        }
-        
-        .track-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .track-artist {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .track-genre {
-            color: #764ba2;
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
-        
-        .track-reason {
-            color: #667eea;
-            font-size: 12px;
-            background: #f0f0ff;
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 15px;
-            margin-top: 5px;
-        }
-        
-        .track-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-end;
-        }
-        
-        .fav-btn, .skip-btn {
-            padding: 10px 20px;
-            border: none;
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
             border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: var(--shadow-sm);
             font-size: 14px;
-        }
-        
-        .fav-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-weight: 500;
             color: white;
         }
         
-        .fav-btn:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        .notification-success { background: #4caf50; }
+        .notification-error { background: #ff4757; }
+        .notification-info { background: #2196f3; }
+        .notification-warning { background: #ff9800; }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
-        .fav-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
         }
         
-        .skip-btn {
-            background: #999;
-            color: white;
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         
         .skip-btn:hover {
             opacity: 0.8;
             transform: scale(1.05);
-        }
-        
-        .audio-player {
-            width: 250px;
-            height: 35px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 50px;
-            background: white;
-            border-radius: 15px;
-            font-size: 18px;
-            color: #667eea;
-        }
-        
-        .no-recommendations {
-            text-align: center;
-            padding: 50px;
-            background: white;
-            border-radius: 15px;
-            font-size: 18px;
-            color: #999;
-        }
-        
-        @media (max-width: 768px) {
-            .track-card {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .track-actions {
-                align-items: center;
-            }
-            
-            .audio-player {
-                width: 100%;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
         }
     </style>
 </head>
@@ -314,12 +64,8 @@
         <div class="header">
             <h1>🎵 Музыкальный сервис</h1>
             <div class="nav-links">
-                <a href="/favorites/{{ username }}" class="nav-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                    ⭐ Мои треки
-                </a>
-                 <a href="/history/{{ username }}" class="nav-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                    🕒 История
-                </a>
+                <a href="/history/{{ username }}" class="nav-link">🕒 История</a>
+                <a href="/favorites/{{ username }}" class="nav-link">⭐ Мои треки</a>
             </div>
             <div class="user-info">
                 <span class="username" id="usernameDisplay">{{ username }}</span>
@@ -391,6 +137,7 @@
         </div>
     </div>
     
+    <script src="/static/js/theme.js"></script>
     <script src="/js/main.js"></script>
 </body>
 </html>

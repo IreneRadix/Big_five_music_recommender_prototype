@@ -1,0 +1,76 @@
+/* themes.css */
+:root {
+    /* Светлая тема (по умолчанию) */
+    --bg-gradient-start: #667eea;
+    --bg-gradient-end: #764ba2;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --text-muted: #999;
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.1);
+    --header-bg: #ffffff;
+    --button-primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --button-primary-text: #ffffff;
+    --button-secondary-bg: #f0f0ff;
+    --button-secondary-text: #667eea;
+    --button-danger-bg: #ff4757;
+    --button-danger-text: #ffffff;
+    --tab-bg: #f0f0ff;
+    --tab-text: #667eea;
+    --tab-active-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --tab-active-text: #ffffff;
+    --loading-text: #667eea;
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.2);
+    --genre-color: #764ba2;
+    --reason-bg: #f0f0ff;
+    --reason-text: #667eea;
+    --input-bg: #ffffff;
+    --input-border: #ddd;
+    --input-text: #333;
+    --link-color: #667eea;
+    --link-hover-bg: #667eea;
+    --link-hover-text: #ffffff;
+}
+
+[data-theme="dark"] {
+    --bg-gradient-start: #1e1e2f;
+    --bg-gradient-end: #2a2a40;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+    --text-muted: #666666;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --header-bg: rgba(255, 255, 255, 0.1);
+    --button-primary-bg: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    --button-primary-text: #ffffff;
+    --button-secondary-bg: rgba(255, 255, 255, 0.1);
+    --button-secondary-text: #ffffff;
+    --button-danger-bg: rgba(255, 71, 87, 0.2);
+    --button-danger-text: #ff6b6b;
+    --tab-bg: rgba(255, 255, 255, 0.1);
+    --tab-text: #ffffff;
+    --tab-active-bg: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    --tab-active-text: #ffffff;
+    --loading-text: #aaaaaa;
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --genre-color: #9b59b6;
+    --reason-bg: rgba(155, 89, 182, 0.2);
+    --reason-text: #d4a5ff;
+    --input-bg: rgba(255, 255, 255, 0.1);
+    --input-border: rgba(255, 255, 255, 0.2);
+    --input-text: #ffffff;
+    --link-color: #9b59b6;
+    --link-hover-bg: rgba(155, 89, 182, 0.2);
+    --link-hover-text: #ffffff;
+}
+
+/* Анимация перехода темы */
+* {
+    transition: background-color 0.3s ease, 
+                border-color 0.3s ease, 
+                color 0.2s ease;
+}
