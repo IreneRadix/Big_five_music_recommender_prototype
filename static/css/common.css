@@ -538,4 +538,28 @@ body {
     .user-info {
         justify-content: center;
     }
+
+    /* Фиксы для графиков Chart.js */
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+.chart-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .chart-container {
+        min-height: 250px;
+        padding: 15px;
+    }
+    
+    #activityChart {
+        height: 250px !important;
+    }
+}
 }
