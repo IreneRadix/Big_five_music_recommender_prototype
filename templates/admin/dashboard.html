@@ -103,13 +103,28 @@
         }
         
         .chart-container {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--card-border);
+        position: relative;
+        min-height: 300px; /* Добавьте минимальную высоту */
         }
+
+        #tab-overview .chart-container:first-child {
+            min-height: 350px;
+            height: auto;
+        }
+
+
+        #activityChart {
+            width: 100% !important;
+            height: 300px !important; /* Фиксированная высота */
+            max-height: 350px;
+        }
+
         
         .chart-title {
             font-size: 18px;
@@ -269,11 +284,13 @@
         </div>
         
         <!-- Контент табов -->
-        <div id="tab-overview" class="tab-content active">
-            <div class="chart-container">
-                <div class="chart-title">📈 Активность по дням</div>
-                <canvas id="activityChart" height="100"></canvas>
-            </div>
+       <div id="tab-overview" class="tab-content active">
+    <div class="chart-container" style="min-height: 350px; height: auto;">
+        <div class="chart-title">📈 Активность по дням недели</div>
+        <div style="position: relative; height: 300px; width: 100%;">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="chart-container">
