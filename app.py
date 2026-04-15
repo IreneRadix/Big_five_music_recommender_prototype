@@ -6,6 +6,7 @@ from favorites import favorites_bp
 from survey import survey_bp
 from vk_parser_bp import vk_bp
 from admin_bp import admin_bp
+from stats_bp import stats_bp
 from recommendations import MusicRecommender
 import logging
 import os
@@ -35,6 +36,7 @@ app.register_blueprint(favorites_bp, url_prefix='/api')
 app.register_blueprint(survey_bp)
 app.register_blueprint(vk_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(stats_bp)
 
 recommender = MusicRecommender()
 
