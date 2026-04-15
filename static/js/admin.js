@@ -326,7 +326,6 @@ window.addEventListener('resize', () => {
     }
 });
 // Создание графика активности по дням
-// Создание графика активности по дням
 function createActivityChart() {
     const canvas = document.getElementById('activityChart');
     if (!canvas) return;

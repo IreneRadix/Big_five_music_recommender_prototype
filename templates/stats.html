@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика - Музыкальный сервис</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <!-- Chart.js для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Стили для страницы статистики */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--link-color);
+            margin-bottom: 5px;
+        }
+        
+        [data-theme="dark"] .stat-value {
+            color: #9b59b6;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .stats-period-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .period-tab {
+            padding: 12px 24px;
+            background: var(--tab-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: var(--tab-text);
+        }
+        
+        .period-tab:hover {
+            transform: translateY(-2px);
+            background: var(--link-hover-bg);
+        }
+        
+        .period-tab.active {
+            background: var(--tab-active-bg);
+            color: var(--tab-active-text);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .charts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        .chart-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--card-border);
+        }
+        
+        .chart-card.full-width {
+            grid-column: span 2;
+        }
+        
+        .chart-card h3 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+        
+        .chart-card.full-width .chart-wrapper {
+            height: 300px;
+        }
+        
+        .top-list {
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: var(--button-secondary-bg);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .list-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .item-rank {
+            width: 30px;
+            height: 30px;
+            background: var(--link-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 15px;
+        }
+        
+        .item-name {
+            flex: 1;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .item-count {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .empty-list {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+        
+        .empty-stats {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            font-size: 18px;
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+        }
+        
+        .empty-stats a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .empty-stats a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-card.full-width {
+                grid-column: span 1;
+            }
+            
+            .period-tab {
+                flex: 1;
+                text-align: center;
+                padding: 10px 15px;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-value {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Моя статистика</h1>
+            <div class="nav-links">
+                <a href="/feed/{{ username }}" class="nav-link">🎵 Рекомендации</a>
+                <a href="/favorites/{{ username }}" class="nav-link">⭐ Избранное</a>
+                <a href="/history/{{ username }}" class="nav-link">🕒 История</a>
+            </div>
+            <div class="user-info">
+                <span class="username" id="usernameDisplay">{{ username }}</span>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+        
+        <div id="statsContent">
+            <div class="loading">📊 Загрузка статистики...</div>
+        </div>
+    </div>
+    
+    <script src="/static/js/theme.js"></script>
+    <script src="/js/stats.js"></script>
+    <script>
+        // Отображение имени пользователя
+        document.addEventListener('DOMContentLoaded', () => {
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            const path = window.location.pathname;
+            const match = path.match(/\/stats\/(.+)/);
+            const username = match ? match[1] : localStorage.getItem('username');
+            if (usernameDisplay && username) {
+                usernameDisplay.textContent = username;
+            }
+        });
+    </script>
+</body>
+</html>
