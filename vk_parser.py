@@ -412,22 +412,9 @@ def extract_user_id_from_vk_url(url):
 def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None, 
                   should_close_driver: bool = True,
                   vk_access_token: str = None) -> Dict[str, Any]:
-    """
-    Парсит данные пользователя VK и возвращает результат в формате JSON.
-    
-    Args:
-        vk_url: URL профиля VK
-        driver: опционально переданный WebDriver (если None, создается новый)
-        should_close_driver: закрывать ли driver после завершения
-        vk_access_token: токен доступа VK API (для получения пола/возраста/города)
-    
-    Returns:
-        Dict с данными пользователя
-    """
-    # Инициализируем DeepFace
+
     init_deepface()
     
-    # Создаем driver, если не передан
     own_driver = False
     if driver is None:
         driver = get_vk_driver()
@@ -440,14 +427,13 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
             'friends': 0,
             'likes_pics_med': 0,
             'vk_url': vk_url,
-            # Новые поля
+            
             'sex': None,
             'age': None,
             'city': None,
             'country': None
         }
         
-        # ========== НОВЫЙ КОД: Получаем пол, возраст и город через VK API ==========
         try:
             vk_user_info = get_user_info_with_consent(vk_url, consent=True, access_token=vk_access_token)
             features['sex'] = vk_user_info.get('sex')
@@ -457,20 +443,18 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
             logger.info(f"VK API info: пол={features['sex']}, возраст={features['age']}, город={features['city']}")
         except Exception as e:
             logger.warning(f"Не удалось получить данные через VK API: {e}")
-        # ========== КОНЕЦ НОВОГО КОДА ==========
-        
-        # Переходим на главную страницу VK
+
         driver.get('https://vk.com')
         time.sleep(1)
         driver.get(vk_url)
-        # Получаем ссылки на музыку
+  
         audio_links = driver.find_elements(By.XPATH, "//a[contains(@href, '/audios')]")
         if len(audio_links) < 2:
             raise Exception("Не удалось найти аудио ссылки. Возможно, пользователь не авторизован.")
         
         user_liks = {}
         user_liks['music'] = audio_links[1].get_attribute("href")
-        vk_user_id = extract_user_id_from_url(user_liks['music'])
+        vk_user_id = extract_user_id_from_vk_url(user_liks['music'])
         
         if not vk_user_id:
             raise Exception("Не удалось извлечь ID пользователя VK")
@@ -481,18 +465,14 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         user_liks['with_others'] = f"https://vk.com/tag{vk_user_id}"
         user_liks['friends'] = f"https://vk.com/friends?id={vk_user_id}&section=all"
         
-        # Получаем друзей
         friends, n_friends = get_friends(driver, user_liks['friends'])
         
-        # Получаем фото
         driver.get(user_liks['avatars'])
         src_urls, post_urls = extract_image_urls(driver)
         photos = get_imgs(src_urls)
         
-        # Обрабатываем фото
         auto_portraits_number, portraits = process_imgs_parallel(photos)
         
-        # Находим URL портретов
         portrait_idxs = []
         for portrait in portraits:
             try:
@@ -502,19 +482,16 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         
         portrait_urls = [post_urls[i] for i in portrait_idxs if i < len(post_urls)]
         
-        # Получаем лайки на портретах
         friend_likes_per_portrait = []
         for url in portrait_urls:
             liker_urls = get_liker_urls_for_one(driver, url, vk_url)
             common_elements = set(liker_urls) & set(friends)
             friend_likes_per_portrait.append(len(common_elements))
         
-        # Вычисляем медиану
         med_friend_likes_per_portrait = 0
         if friend_likes_per_portrait:
             med_friend_likes_per_portrait = np.median(np.array(friend_likes_per_portrait))
         
-        # Заполняем результат
         features['user_id'] = vk_user_id
         features['likes_pics_med'] = float(med_friend_likes_per_portrait)
         features['friends'] = n_friends if n_friends else 0
@@ -526,11 +503,9 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         logger.error(f"Ошибка при парсинге VK: {e}")
         raise
     finally:
-        # Закрываем driver, если он был создан в этой функции
+        
         if own_driver and should_close_driver:
             driver.quit()
-
-
 
 def parse_vk_data_api(vk_url: str, consent: bool = True, 
                       vk_access_token: str = None) -> Dict[str, Any]:
@@ -543,7 +518,6 @@ def parse_vk_data_api(vk_url: str, consent: bool = True,
     if not vk_url or not isinstance(vk_url, str):
         raise ValueError("Неверный URL VK")
     
-
     driver = get_vk_driver()
     try:
         result = parse_vk_data(vk_url, driver=driver, should_close_driver=False, 
@@ -562,5 +536,3 @@ def parse_vk_data_api(vk_url: str, consent: bool = True,
         return result
     finally:
         driver.quit()
-
-
