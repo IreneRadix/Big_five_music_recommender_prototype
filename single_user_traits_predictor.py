@@ -3,14 +3,13 @@ import pandas as pd
 from database import get_db_connection
 import pickle
 
-
 def predict_extraversion(row, extraversion_model):
-    # Преобразуем Series в DataFrame с правильной формой
+    
     row_df = pd.DataFrame([row.values], columns=row.index)
     return round(extraversion_model.predict(row_df)[0])
 
 def predict_openness(row, openness_model):
-    # Выбираем только нужные признаки для openness_model
+    
     features = ['friends', 'pictures']
     row_df = pd.DataFrame([row[features].values], columns=features)
     return round(openness_model.predict(row_df)[0])
@@ -19,19 +18,17 @@ def get_user_traits(features: dict):
     df = pd.DataFrame(features) 
     df.fillna(0, inplace=True)
 
-    # Загрузка моделей
-    with open(r"ml_models/extraversion_model_3featurea.pkl", 'rb') as file:  # Исправлен путь
+    with open(r"ml_models/extraversion_model_3featurea.pkl", 'rb') as file:  
         extraversion_model = pickle.load(file)
 
-    with open(r"ml_models/openness_model_2features.pkl", 'rb') as file:  # Исправлен путь
+    with open(r"ml_models/openness_model_2features.pkl", 'rb') as file:  
         openness_model = pickle.load(file)
 
     conn = get_db_connection()
     cur = conn.cursor() 
 
-    # Предсказания
     for index, row in df.iterrows():
-        # Проверяем, есть ли колонка user_id
+        
         if 'user_id' in df.columns:
             user_id = row['user_id']
             row_features = row.drop('user_id')
@@ -55,4 +52,3 @@ def get_user_traits(features: dict):
                 print(e)
         except Exception as e:
             print(f"Ошибка при обработке {user_id}: {e}")
-

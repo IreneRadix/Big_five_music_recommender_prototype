@@ -1,12 +1,15 @@
-const STORAGE_KEY = 'recently_played_tracks';
-const MAX_HISTORY_ITEMS = 20;
+if (typeof API_BASE === 'undefined') {
+    const API_BASE = 'http://localhost:5000/api';
+}
+
+function getToken() {
+    return localStorage.getItem('token');
+}
 
 function getCurrentUsername() {
     const path = window.location.pathname;
     const match = path.match(/\/history\/(.+)/);
-    if (match && match[1]) {
-        return match[1];
-    }
+    if (match && match[1]) return match[1];
     return localStorage.getItem('username') || localStorage.getItem('user_name');
 }
 
@@ -39,25 +42,47 @@ function formatTimestamp(timestamp) {
     });
 }
 
-function loadHistory() {
+async function loadHistory() {
+    const token = getToken();
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+
     const container = document.getElementById('historyContent');
-    
+    container.innerHTML = '<div class="loading">🕒 Загрузка истории...</div>';
+
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        let tracks = stored ? JSON.parse(stored) : [];
+        const response = await fetch(`${API_BASE}/history`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            alert('Сессия истекла, войдите снова');
+            window.location.href = '/login';
+            return;
+        }
+        const history = await response.json();
         
-        if (!Array.isArray(tracks)) tracks = [];
-        tracks.sort((a, b) => new Date(b.played_at) - new Date(a.played_at));
-        
-        if (tracks.length === 0) {
+        if (!history.length) {
             container.innerHTML = `
                 <div class="empty-history">
                     🎧 Вы пока не слушали треки<br><br>
-                    <a href="/feed/${getCurrentUsername()}">🎵 Перейти к рекомендациям</a> и начните слушать музыку!
+                    <a href="/feed/${getCurrentUsername()}">🎵 Перейти к рекомендациям</a>
                 </div>
             `;
             return;
         }
+        
+        const tracks = history.map(item => ({
+            id: item.track_id,
+            title: item.title,
+            artist: item.artist,
+            genre: item.genre,
+            cover_url: item.cover_url,
+            file_url: item.file_url,
+            played_at: item.played_at
+        }));
         
         container.innerHTML = `
             <div class="history-header">
@@ -89,41 +114,71 @@ function loadHistory() {
         `;
     } catch (error) {
         console.error('Ошибка загрузки истории:', error);
-        container.innerHTML = `
-            <div class="empty-history">
-                ❌ Ошибка загрузки истории<br><br>
-                <a href="/feed/${getCurrentUsername()}">Вернуться к рекомендациям</a>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-history">❌ Ошибка загрузки истории</div>';
     }
 }
 
-function removeFromHistory(trackId) {
+async function removeFromHistory(trackId) {
+    const token = getToken();
+    if (!token) return;
+    
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        let tracks = stored ? JSON.parse(stored) : [];
-        
-        tracks = tracks.filter(t => t.id !== trackId);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks));
-        
-        loadHistory();
-        showNotification('Трек удалён из истории', 'success');
+        const response = await fetch(`${API_BASE}/history/${trackId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            loadHistory();
+            showNotification('Трек удалён из истории', 'success');
+        } else {
+            const data = await response.json();
+            showNotification(data.error || 'Ошибка удаления', 'error');
+        }
     } catch (error) {
         console.error('Ошибка удаления:', error);
         showNotification('Не удалось удалить трек', 'error');
     }
 }
 
-function clearAllHistory() {
+async function clearAllHistory() {
     if (!confirm('Вы уверены, что хотите очистить всю историю прослушивания?')) return;
+    const token = getToken();
+    if (!token) return;
     
     try {
-        localStorage.removeItem(STORAGE_KEY);
-        loadHistory();
-        showNotification('История очищена', 'success');
+        const response = await fetch(`${API_BASE}/history`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            loadHistory();
+            showNotification('История очищена', 'success');
+        } else {
+            const data = await response.json();
+            showNotification(data.error || 'Ошибка очистки', 'error');
+        }
     } catch (error) {
         console.error('Ошибка очистки:', error);
         showNotification('Не удалось очистить историю', 'error');
+    }
+}
+
+async function addToHistory(track) {
+    const token = getToken();
+    if (!token) return; 
+    
+    try {
+        await fetch(`${API_BASE}/history`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ track_id: track.id })
+        });
+        
+    } catch (error) {
+        console.error('Ошибка сохранения истории:', error);
     }
 }
 
@@ -145,9 +200,7 @@ function showNotification(message, type = 'success') {
         font-size: 14px;
         font-weight: 500;
     `;
-    
     document.body.appendChild(notification);
-    
     setTimeout(() => {
         notification.style.animation = 'slideOutRight 0.3s ease';
         setTimeout(() => notification.remove(), 300);
@@ -166,5 +219,23 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+document.addEventListener('play', function(e) {
+    const audio = e.target;
+    if (audio.classList.contains('audio-player')) {
+        const trackCard = audio.closest('.track-card');
+        if (trackCard) {
+            const track = {
+                id: parseInt(trackCard.dataset.trackId),
+                title: trackCard.querySelector('.track-title')?.textContent || 'Неизвестный трек',
+                artist: trackCard.querySelector('.track-artist')?.textContent || 'Неизвестный исполнитель',
+                genre: trackCard.querySelector('.track-genre')?.textContent?.replace('🎵 ', '') || '',
+                cover_url: trackCard.querySelector('.track-cover')?.src || '',
+                file_url: audio.src
+            };
+            addToHistory(track);
+        }
+    }
+}, true);
 
 document.addEventListener('DOMContentLoaded', loadHistory);

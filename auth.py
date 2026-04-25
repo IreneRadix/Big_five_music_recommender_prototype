@@ -8,16 +8,15 @@ from psycopg2.extras import RealDictCursor
 
 auth_bp = Blueprint('auth', __name__)
 
-# Декоратор для проверки JWT
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        # Получаем токен из заголовка
+        
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
             try:
-                # Ожидаем формат "Bearer <token>"
+                
                 token = auth_header.split(" ")[1]
             except IndexError:
                 return jsonify({"error": "Invalid token format"}), 401
@@ -26,7 +25,7 @@ def token_required(f):
             return jsonify({"error": "Token is missing"}), 401
         
         try:
-            # Декодируем токен
+            
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user_id = data['user_id']
         except jwt.ExpiredSignatureError:
@@ -44,11 +43,9 @@ def register():
     email = data.get('email')
     password = data.get('password')
     
-    # Проверка наличия всех полей
     if not username or not email or not password:
         return jsonify({"error": "Missing required fields"}), 400
     
-    # Хешируем пароль
     hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     
     conn = get_db_connection()
@@ -85,7 +82,7 @@ def login():
     conn.close()
     
     if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
-        # Генерируем JWT
+        
         token = jwt.encode(
             {
                 'user_id': user['id'],

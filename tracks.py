@@ -4,7 +4,6 @@ from psycopg2.extras import RealDictCursor
 
 tracks_bp = Blueprint('tracks', __name__)
 
-# Получить персональную подборку (например, 10 случайных треков)
 @tracks_bp.route('/recommendations', methods=['GET'])
 def get_recommendations():
     conn = get_db_connection()
@@ -15,7 +14,6 @@ def get_recommendations():
     conn.close()
     return jsonify(tracks)
 
-# Получить все треки
 @tracks_bp.route('/tracks', methods=['GET'])
 def get_all_tracks():
     conn = get_db_connection()
@@ -26,7 +24,6 @@ def get_all_tracks():
     conn.close()
     return jsonify(tracks)
 
-# Получить трек по ID
 @tracks_bp.route('/tracks/<int:track_id>', methods=['GET'])
 def get_track(track_id):
     conn = get_db_connection()
