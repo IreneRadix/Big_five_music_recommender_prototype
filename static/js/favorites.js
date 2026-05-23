@@ -1,6 +1,5 @@
 const API_BASE = 'http://localhost:5000/api';
 
-// Функция для сохранения трека в историю прослушивания
 function saveToRecentlyPlayed(track) {
     try {
         const STORAGE_KEY = 'recently_played_tracks';
@@ -9,16 +8,13 @@ function saveToRecentlyPlayed(track) {
         const stored = localStorage.getItem(STORAGE_KEY);
         let history = stored ? JSON.parse(stored) : [];
         
-        // Удаляем трек, если он уже есть в истории
         history = history.filter(t => t.id !== track.id);
         
-        // Добавляем в начало с временной меткой
         history.unshift({
             ...track,
             played_at: new Date().toISOString()
         });
         
-        // Ограничиваем размер
         if (history.length > MAX_HISTORY) {
             history = history.slice(0, MAX_HISTORY);
         }
@@ -29,7 +25,6 @@ function saveToRecentlyPlayed(track) {
     }
 }
 
-// Слушатель событий воспроизведения
 document.addEventListener('play', function(e) {
     const audio = e.target;
     if (audio.classList.contains('audio-player')) {
@@ -48,7 +43,6 @@ document.addEventListener('play', function(e) {
     }
 }, true);
 
-// Получение username из URL
 function getCurrentUsername() {
     const path = window.location.pathname;
     const match = path.match(/\/favorites\/(.+)/);
@@ -58,7 +52,6 @@ function getCurrentUsername() {
     return localStorage.getItem('username') || localStorage.getItem('user_name');
 }
 
-// Загрузка избранных треков
 async function loadFavorites() {
     const token = localStorage.getItem('token');
     
@@ -78,7 +71,7 @@ async function loadFavorites() {
         });
         
         if (response.status === 401) {
-            // Токен истек или недействителен
+            
             localStorage.removeItem('token');
             localStorage.removeItem('user_id');
             alert('Сессия истекла, пожалуйста, войдите снова');
@@ -97,7 +90,6 @@ async function loadFavorites() {
     }
 }
 
-// Отображение избранных треков
 function displayFavorites(tracks) {
     const container = document.getElementById('favoritesContent');
     
@@ -140,7 +132,6 @@ function displayFavorites(tracks) {
     `;
 }
 
-// Удаление трека из избранного
 async function removeFromFavorites(trackId, button) {
     const token = localStorage.getItem('token');
     
@@ -162,7 +153,7 @@ async function removeFromFavorites(trackId, button) {
         });
         
         if (response.ok) {
-            // Находим карточку трека и удаляем её с анимацией
+            
             const trackCard = button.closest('.track-card');
             trackCard.style.transition = 'all 0.3s ease';
             trackCard.style.opacity = '0';
@@ -172,12 +163,11 @@ async function removeFromFavorites(trackId, button) {
                 trackCard.remove();
                 showNotification('Трек удален из избранного', 'success');
                 
-                // Обновляем счетчик
                 const remainingTracks = document.querySelectorAll('.track-card').length;
                 const countElement = document.querySelector('.favorites-count');
                 if (countElement) {
                     if (remainingTracks === 0) {
-                        // Если треков не осталось, показываем пустое состояние
+                        
                         loadFavorites();
                     } else {
                         countElement.textContent = `⭐ У вас ${remainingTracks} ${getFavoritesWord(remainingTracks)} в избранном`;
@@ -198,7 +188,6 @@ async function removeFromFavorites(trackId, button) {
     }
 }
 
-// Очистка всех избранных треков
 async function clearAllFavorites() {
     const confirmed = confirm('Вы уверены, что хотите удалить все треки из избранного? Это действие нельзя отменить.');
     
@@ -217,7 +206,7 @@ async function clearAllFavorites() {
     button.disabled = true;
     
     try {
-        // Получаем все треки
+        
         const response = await fetch(`${API_BASE}/favorites`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -226,7 +215,6 @@ async function clearAllFavorites() {
         
         const tracks = await response.json();
         
-        // Удаляем каждый трек
         let deletedCount = 0;
         for (const track of tracks) {
             const deleteResponse = await fetch(`${API_BASE}/favorites/${track.id}`, {
@@ -243,7 +231,7 @@ async function clearAllFavorites() {
         
         if (deletedCount > 0) {
             showNotification(`Удалено ${deletedCount} треков из избранного`, 'success');
-            loadFavorites(); // Перезагружаем страницу
+            loadFavorites(); 
         } else {
             alert('Не удалось удалить треки');
             button.textContent = originalText;
@@ -257,7 +245,6 @@ async function clearAllFavorites() {
     }
 }
 
-// Выход из системы
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user_id');
@@ -266,7 +253,6 @@ function logout() {
     window.location.href = '/login';
 }
 
-// Вспомогательные функции
 function getFavoritesWord(count) {
     if (count % 10 === 1 && count % 100 !== 11) return 'трек';
     if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'трека';
@@ -287,7 +273,7 @@ function showLoading() {
 }
 
 function hideLoading() {
-    // Индикатор исчезнет при отображении треков
+    
 }
 
 function showError(message) {
@@ -327,7 +313,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Добавляем CSS анимации
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
@@ -354,7 +339,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Функция для сохранения трека в историю прослушивания
 function saveToRecentlyPlayed(track) {
     try {
         const STORAGE_KEY = 'recently_played_tracks';
@@ -363,16 +347,13 @@ function saveToRecentlyPlayed(track) {
         const stored = localStorage.getItem(STORAGE_KEY);
         let history = stored ? JSON.parse(stored) : [];
         
-        // Удаляем трек, если он уже есть в истории
         history = history.filter(t => t.id !== track.id);
         
-        // Добавляем в начало с временной меткой
         history.unshift({
             ...track,
             played_at: new Date().toISOString()
         });
         
-        // Ограничиваем размер
         if (history.length > MAX_HISTORY) {
             history = history.slice(0, MAX_HISTORY);
         }
@@ -382,7 +363,7 @@ function saveToRecentlyPlayed(track) {
         console.error('Ошибка сохранения истории:', error);
     }
 }
-// Добавить в конец файла или в инициализацию
+
 document.addEventListener('play', function(e) {
     const audio = e.target;
     if (audio.classList.contains('audio-player')) {
@@ -401,6 +382,4 @@ document.addEventListener('play', function(e) {
     }
 }, true);
 
-// Загрузка при старте
 document.addEventListener('DOMContentLoaded', loadFavorites);
-
