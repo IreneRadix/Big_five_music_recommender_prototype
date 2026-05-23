@@ -1,7 +1,5 @@
 const API_BASE = 'http://localhost:5000/api';
 
-
-// Функция для сохранения трека в историю прослушивания
 function saveToRecentlyPlayed(track) {
     try {
         const STORAGE_KEY = 'recently_played_tracks';
@@ -10,16 +8,13 @@ function saveToRecentlyPlayed(track) {
         const stored = localStorage.getItem(STORAGE_KEY);
         let history = stored ? JSON.parse(stored) : [];
         
-        // Удаляем трек, если он уже есть в истории
         history = history.filter(t => t.id !== track.id);
         
-        // Добавляем в начало с временной меткой
         history.unshift({
             ...track,
             played_at: new Date().toISOString()
         });
         
-        // Ограничиваем размер
         if (history.length > MAX_HISTORY) {
             history = history.slice(0, MAX_HISTORY);
         }
@@ -30,7 +25,6 @@ function saveToRecentlyPlayed(track) {
     }
 }
 
-// Слушатель событий воспроизведения
 document.addEventListener('play', function(e) {
     const audio = e.target;
     if (audio.classList.contains('audio-player')) {
@@ -49,7 +43,6 @@ document.addEventListener('play', function(e) {
     }
 }, true);
 
-// Регистрация
 document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('username').value;
@@ -73,7 +66,6 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     }
 });
 
-// Вход
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('username').value;
@@ -96,7 +88,6 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 });
 
-// Выход из системы
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user_id');
@@ -105,7 +96,6 @@ function logout() {
     window.location.href = '/login';
 }
 
-// Получение текущего username
 function getCurrentUsername() {
     const path = window.location.pathname;
     const match = path.match(/\/feed\/(.+)/);
@@ -115,7 +105,6 @@ function getCurrentUsername() {
     return localStorage.getItem('username') || localStorage.getItem('user_name');
 }
 
-// Вспомогательные функции
 function getFavoritesWord(count) {
     if (count % 10 === 1 && count % 100 !== 11) return 'трек';
     if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'трека';
@@ -137,7 +126,6 @@ function showLoading() {
 
 function hideLoading() {}
 
-// Показ уведомлений
 function showNotification(message, type = 'success') {
     const oldNotifications = document.querySelectorAll('.notification');
     oldNotifications.forEach(notif => notif.remove());
@@ -176,7 +164,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Обновление нумерации треков
 function updateTrackNumbers() {
     const trackCards = document.querySelectorAll('.track-card');
     trackCards.forEach((card, index) => {
@@ -187,7 +174,6 @@ function updateTrackNumbers() {
     });
 }
 
-// Обновление счетчика избранного
 async function updateFavoritesCount() {
     const username = getCurrentUsername();
     if (!username) return;
@@ -220,7 +206,6 @@ async function updateFavoritesCount() {
     }
 }
 
-// Добавление трека в конец списка
 function appendTrackToEnd(track, newNumber) {
     const container = document.getElementById('recommendations');
     if (!container) return;
@@ -265,7 +250,6 @@ function appendTrackToEnd(track, newNumber) {
     }, 500);
 }
 
-// Загрузка заменяющего трека
 async function loadReplacementTrack() {
     const username = getCurrentUsername();
     if (!username) return;
@@ -304,12 +288,10 @@ async function loadReplacementTrack() {
     }
 }
 
-// Добавление в избранное
 async function addToFavorites(trackId, button) {
     await addToFavoritesFromSection(trackId, button);
 }
 
-// Пропуск трека
 async function skipTrack(trackId, button) {
     const trackCard = button.closest('.track-card');
     if (trackCard) {
@@ -326,7 +308,6 @@ async function skipTrack(trackId, button) {
     }
 }
 
-// Отображение рекомендаций
 function displayRecommendations(tracks, stats) {
     const container = document.getElementById('recommendations');
     if (!container) return;
@@ -383,7 +364,6 @@ function displayRecommendations(tracks, stats) {
     });
 }
 
-// Загрузка рекомендаций по умолчанию
 async function loadDefaultRecommendations() {
     try {
         const response = await fetch(`${API_BASE}/recommendations?limit=20`);
@@ -405,7 +385,6 @@ async function loadDefaultRecommendations() {
     }
 }
 
-// Основная функция загрузки рекомендаций
 async function loadRecommendations() {
     const username = getCurrentUsername();
     
@@ -437,7 +416,6 @@ async function loadRecommendations() {
     }
 }
 
-// Добавление CSS анимаций
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -504,12 +482,6 @@ if (!document.querySelector('style[data-dynamic]')) {
     document.head.appendChild(style);
 }
 
-
-
-
-// Добавьте эти функции в main.js
-
-// Конфигурация разделов
 const sections = {
     general: { 
         endpoint: (username) => `${API_BASE}/recommendations/${username}?limit=15`,
@@ -541,7 +513,6 @@ const sections = {
     }
 };
 
-// Загрузка рекомендаций для конкретного раздела
 async function loadSectionRecommendations(sectionId) {
     const username = getCurrentUsername();
     const container = document.getElementById(`${sectionId}-recommendations`);
@@ -566,7 +537,7 @@ async function loadSectionRecommendations(sectionId) {
                 throw new Error(data.error || 'Ошибка загрузки');
             }
         } else {
-            // Если пользователь не авторизован, показываем глобальные рекомендации
+            
             const response = await fetch(`${API_BASE}/recommendations?limit=15`);
             tracks = await response.json();
             if (Array.isArray(tracks)) {
@@ -585,7 +556,6 @@ async function loadSectionRecommendations(sectionId) {
     }
 }
 
-// Отображение треков в разделе
 function displaySectionTracks(tracks, container) {
     const gridContainer = document.createElement('div');
     gridContainer.className = 'recommendations-grid';
@@ -620,9 +590,6 @@ function displaySectionTracks(tracks, container) {
     container.appendChild(gridContainer);
 }
 
-
-
-// Добавление в избранное из любого раздела
 async function addToFavoritesFromSection(trackId, button) {
     const token = localStorage.getItem('token');
     
@@ -665,12 +632,10 @@ async function addToFavoritesFromSection(trackId, button) {
     }
 }
 
-// Инициализация табов
 function initTabs() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     
-    // Загружаем активный раздел
     const activeTab = document.querySelector('.tab-btn.active');
     if (activeTab) {
         const sectionId = activeTab.dataset.tab;
@@ -681,46 +646,39 @@ function initTabs() {
         btn.addEventListener('click', async () => {
             const sectionId = btn.dataset.tab;
             
-            // Обновляем активные кнопки
             tabBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            // Обновляем активный контент
             tabContents.forEach(content => content.classList.remove('active'));
             const activeContent = document.getElementById(`tab-${sectionId}`);
             if (activeContent) {
                 activeContent.classList.add('active');
             }
             
-            // Загружаем рекомендации для выбранного раздела
             await loadSectionRecommendations(sectionId);
         });
     });
 }
 
-// Обновленная функция загрузки всех рекомендаций
 async function loadAllRecommendations() {
     const username = getCurrentUsername();
     
     if (username) {
-        // Обновляем отображение имени пользователя
+        
         const usernameDisplay = document.getElementById('usernameDisplay');
         if (usernameDisplay) {
             usernameDisplay.textContent = username;
         }
         
-        // Загружаем статистику
         await updateFavoritesCount();
     }
     
-    // Загружаем только активный раздел
     const activeTab = document.querySelector('.tab-btn.active');
     if (activeTab) {
         await loadSectionRecommendations(activeTab.dataset.tab);
     }
 }
 
-// Обновляем инициализацию
 if (window.location.pathname.includes('/feed/')) {
     document.addEventListener('DOMContentLoaded', () => {
         initTabs();
@@ -728,7 +686,6 @@ if (window.location.pathname.includes('/feed/')) {
     });
 }
 
-// Функция для сохранения трека в историю прослушивания
 function saveToRecentlyPlayed(track) {
     try {
         const STORAGE_KEY = 'recently_played_tracks';
@@ -737,16 +694,13 @@ function saveToRecentlyPlayed(track) {
         const stored = localStorage.getItem(STORAGE_KEY);
         let history = stored ? JSON.parse(stored) : [];
         
-        // Удаляем трек, если он уже есть в истории
         history = history.filter(t => t.id !== track.id);
         
-        // Добавляем в начало с временной меткой
         history.unshift({
             ...track,
             played_at: new Date().toISOString()
         });
         
-        // Ограничиваем размер
         if (history.length > MAX_HISTORY) {
             history = history.slice(0, MAX_HISTORY);
         }
@@ -756,7 +710,7 @@ function saveToRecentlyPlayed(track) {
         console.error('Ошибка сохранения истории:', error);
     }
 }
-// Добавить в конец файла или в инициализацию
+
 document.addEventListener('play', function(e) {
     const audio = e.target;
     if (audio.classList.contains('audio-player')) {
@@ -775,10 +729,7 @@ document.addEventListener('play', function(e) {
     }
 }, true);
 
-
-// Инициализация при загрузке страницы
 if (window.location.pathname === '/' || 
     window.location.pathname.includes('/feed/')) {
     document.addEventListener('DOMContentLoaded', loadRecommendations);
 }
-

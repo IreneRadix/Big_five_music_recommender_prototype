@@ -1,10 +1,8 @@
 const API_BASE = 'http://localhost:5000';
 let charts = {};
 
-// ДЕМО-ДАННЫЕ ДЛЯ ГРАФИКОВ
-// ДЕМО-ДАННЫЕ ДЛЯ ГРАФИКОВ (масштаб: 350 пользователей, 600 000 треков)
 const DEMO_DATA = {
-    // Активность по дням недели (прослушивания)
+    
     activityByDay: {
         'Пн': 2847,
         'Вт': 3156,
@@ -15,7 +13,6 @@ const DEMO_DATA = {
         'Вс': 6923
     },
     
-    // Распределение по жанрам (в процентах от прослушиваний)
     genreDistribution: {
         'Поп': 28,
         'Рок': 22,
@@ -27,7 +24,6 @@ const DEMO_DATA = {
         'Метал': 4
     },
     
-    // Популярность жанров по возрастным группам (количество прослушиваний)
     genreByAge: {
         '18-24': { 
             'Хип-хоп': 12500, 
@@ -76,7 +72,6 @@ const DEMO_DATA = {
         }
     },
     
-    // Популярность жанров по полу (количество прослушиваний)
     genreByGender: {
         'Мужчины': { 
             'Рок': 45800, 
@@ -98,7 +93,6 @@ const DEMO_DATA = {
         }
     },
     
-    // Распределение по возрастам (всего 350 пользователей)
     ageDistribution: [
         { age_group: '18-24', count: 78 },
         { age_group: '25-34', count: 112 },
@@ -107,27 +101,23 @@ const DEMO_DATA = {
         { age_group: '55+', count: 23 }
     ],
     
-    // Распределение по полу
     genderDistribution: [
         { gender: 'male', count: 168 },
         { gender: 'female', count: 182 }
     ],
     
-    // Типы личности (на основе экстраверсии)
     personalityDistribution: [
         { personality_type: 'Экстраверты', count: 145, avg_extraversion: 4.3 },
         { personality_type: 'Амбиверты', count: 128, avg_extraversion: 3.1 },
         { personality_type: 'Интроверты', count: 77, avg_extraversion: 1.7 }
     ],
     
-    // Открытость опыту
     opennessDistribution: [
         { openness_type: 'Высокая открытость', count: 156, avg_openness: 4.4 },
         { openness_type: 'Средняя открытость', count: 132, avg_openness: 3.0 },
         { openness_type: 'Низкая открытость', count: 62, avg_openness: 1.8 }
     ],
     
-    // Жанры по типам личности (топ-5 для каждого)
     personalityGenres: {
         'Экстраверты': [
             { genre: 'Поп', count: 18700 },
@@ -152,7 +142,6 @@ const DEMO_DATA = {
         ]
     },
     
-    // Топ треков (глобальный)
     topTracks: [
         { title: 'Blinding Lights', artist: 'The Weeknd', favorites_count: 187, listens_count: 12450, genre: 'Поп' },
         { title: 'Bohemian Rhapsody', artist: 'Queen', favorites_count: 176, listens_count: 11340, genre: 'Рок' },
@@ -171,7 +160,6 @@ const DEMO_DATA = {
         { title: 'Back in Black', artist: 'AC/DC', favorites_count: 112, listens_count: 7320, genre: 'Рок' }
     ],
     
-    // Топ треков по возрастным группам
     topTracksByAge: {
         '18-24': [
             { title: 'Bad Guy', artist: 'Billie Eilish', favorites_count: 89 },
@@ -210,7 +198,6 @@ const DEMO_DATA = {
         ]
     },
     
-    // Детальная статистика по базе
     databaseStats: {
         total_users: 347,
         active_users_week: 289,
@@ -225,7 +212,6 @@ const DEMO_DATA = {
         new_users_month: 78
     },
     
-    // Статистика по странам (если нужно)
     countriesData: [
         { country: 'Россия', users: 234, percentage: 67.4 },
         { country: 'Казахстан', users: 34, percentage: 9.8 },
@@ -234,7 +220,6 @@ const DEMO_DATA = {
         { country: 'Другие', users: 30, percentage: 8.6 }
     ],
     
-    // Почасовая активность
     hourlyActivity: {
         '00:00': 1200, '01:00': 850, '02:00': 620, '03:00': 480,
         '04:00': 520, '05:00': 890, '06:00': 2100, '07:00': 4500,
@@ -244,7 +229,6 @@ const DEMO_DATA = {
         '20:00': 14800, '21:00': 15200, '22:00': 12800, '23:00': 7800
     },
     
-    // Топ исполнителей
     topArtists: [
         { name: 'Queen', listeners: 234, favorites: 1250, genre: 'Рок' },
         { name: 'The Beatles', listeners: 218, favorites: 1180, genre: 'Рок' },
@@ -258,10 +242,9 @@ const DEMO_DATA = {
         { name: 'Ed Sheeran', listeners: 142, favorites: 760, genre: 'Поп' }
     ]
 };
-// Флаг использования демо-данных
+
 let useDemoData = false;
 
-// Проверка прав администратора
 async function checkAdminAccess() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -271,7 +254,6 @@ async function checkAdminAccess() {
     return true;
 }
 
-// Загрузка общей статистики
 async function loadOverviewStats() {
     const token = localStorage.getItem('token');
     
@@ -299,7 +281,6 @@ async function loadOverviewStats() {
         loadDemoStats();
     }
     
-    // Небольшая задержка перед созданием графика
     setTimeout(() => {
         createActivityChart();
     }, 100);
@@ -313,9 +294,8 @@ function loadDemoStats() {
     document.getElementById('totalListens').textContent = formatNumber(DEMO_DATA.databaseStats.total_listens);
 }
 
-// Добавьте обработчик изменения размера окна
 window.addEventListener('resize', () => {
-    // Перерисовываем график при изменении размера с небольшой задержкой
+    
     if (charts.activity) {
         clearTimeout(window.resizeTimer);
         window.resizeTimer = setTimeout(() => {
@@ -325,7 +305,7 @@ window.addEventListener('resize', () => {
         }, 250);
     }
 });
-// Создание графика активности по дням
+
 function createActivityChart() {
     const canvas = document.getElementById('activityChart');
     if (!canvas) return;
@@ -333,7 +313,6 @@ function createActivityChart() {
     const ctx = canvas.getContext('2d');
     if (charts.activity) charts.activity.destroy();
     
-    // Устанавливаем фиксированные размеры canvas
     canvas.style.width = '100%';
     canvas.style.height = '300px';
     canvas.width = canvas.offsetWidth;
@@ -363,7 +342,7 @@ function createActivityChart() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // Важно! Позволяет управлять высотой через CSS
+            maintainAspectRatio: false, 
             layout: {
                 padding: {
                     top: 20,
@@ -417,7 +396,6 @@ function createActivityChart() {
     });
 }
 
-// Функция форматирования чисел
 function formatNumber(num) {
     if (num >= 1000000) {
         return (num / 1000000).toFixed(1) + 'M';
@@ -427,7 +405,6 @@ function formatNumber(num) {
     return num.toString();
 }
 
-// Загрузка популярных треков
 async function loadPopularTracks() {
     const token = localStorage.getItem('token');
     const filter = document.getElementById('trackFilter')?.value || 'overall';
@@ -456,7 +433,6 @@ async function loadPopularTracks() {
     }
 }
 
-// Отображение демо-популярных треков
 function displayDemoPopularTracks(filter) {
     const container = document.getElementById('popularTracksContainer');
     
@@ -562,7 +538,6 @@ function displayDemoPopularTracks(filter) {
     }
 }
 
-// Отображение популярных треков (реальные данные)
 function displayPopularTracks(tracks, filter) {
     const container = document.getElementById('popularTracksContainer');
     
@@ -684,7 +659,6 @@ function displayPopularTracks(tracks, filter) {
     }
 }
 
-// Загрузка анализа жанров
 async function loadGenreAnalysis() {
     const token = localStorage.getItem('token');
     
@@ -696,7 +670,7 @@ async function loadGenreAnalysis() {
         if (response.ok) {
             const data = await response.json();
             if (data.success) {
-                // Проверяем наличие данных
+                
                 if (data.genre_by_age && data.genre_by_age.length > 0) {
                     const ageData = processGenreAgeData(data.genre_by_age);
                     createGenreAgeChart(ageData);
@@ -928,7 +902,6 @@ function createOverallGenreChart(data) {
     });
 }
 
-// Загрузка сегментации пользователей
 async function loadUserSegments() {
     const token = localStorage.getItem('token');
     
@@ -940,7 +913,7 @@ async function loadUserSegments() {
         if (response.ok) {
             const data = await response.json();
             if (data.success) {
-                // Используем реальные или демо-данные
+                
                 const ageData = data.age_distribution?.length ? data.age_distribution : DEMO_DATA.ageDistribution;
                 const genderData = data.gender_distribution?.length ? data.gender_distribution : DEMO_DATA.genderDistribution;
                 const personalityData = data.personality_distribution?.length ? data.personality_distribution : DEMO_DATA.personalityDistribution;
@@ -1084,7 +1057,6 @@ function displayPersonalityGenres(data) {
     container.innerHTML = html;
 }
 
-// Загрузка списка пользователей
 let currentUserPage = 1;
 let userSearchTerm = '';
 
@@ -1260,7 +1232,6 @@ function searchUsers() {
     loadUsers(1);
 }
 
-// Вспомогательные функции
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -1282,7 +1253,6 @@ function showMessage(message, type) {
     setTimeout(() => container.innerHTML = '', 3000);
 }
 
-// Инициализация табов
 function initTabs() {
     const tabs = document.querySelectorAll('.admin-tab');
     const contents = document.querySelectorAll('.tab-content');
@@ -1297,7 +1267,6 @@ function initTabs() {
             contents.forEach(c => c.classList.remove('active'));
             document.getElementById(`tab-${tabId}`).classList.add('active');
             
-            // Загружаем данные для соответствующего таба
             if (tabId === 'tracks') {
                 loadPopularTracks();
             } else if (tabId === 'genres') {
@@ -1311,13 +1280,11 @@ function initTabs() {
     });
 }
 
-// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', async () => {
     if (await checkAdminAccess()) {
         await loadOverviewStats();
         initTabs();
         
-        // Загружаем топ треков для превью
         const preview = document.getElementById('topTracksPreview');
         preview.innerHTML = DEMO_DATA.topTracks.slice(0, 5).map((track, i) => `
             <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid var(--card-border);">
@@ -1331,7 +1298,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `).join('');
         
-        // Создаем график жанров для превью
         createDemoOverallGenreChart();
     }
 });

@@ -1,4 +1,3 @@
-// stats.js - Статистика пользователя
 const API_BASE = 'http://localhost:5000/api';
 
 function getCurrentUsername() {
@@ -16,7 +15,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Форматирование длительности
 function formatDuration(seconds) {
     if (!seconds || seconds < 60) return '< 1 мин';
     const hours = Math.floor(seconds / 3600);
@@ -27,7 +25,6 @@ function formatDuration(seconds) {
     return `${minutes} мин`;
 }
 
-// Загрузка статистики
 async function loadStats() {
     const username = getCurrentUsername();
     
@@ -56,11 +53,9 @@ async function loadStats() {
     }
 }
 
-// Отображение статистики
 function displayStats(stats) {
     const container = document.getElementById('statsContent');
     
-    // Общая статистика
     const totalStats = stats.all_time;
     
     container.innerHTML = `
@@ -136,11 +131,9 @@ function displayStats(stats) {
         </div>
     `;
     
-    // Инициализация графиков с данными за всё время
     updateCharts(stats.all_time);
 }
 
-// Отрисовка топ исполнителей
 function renderTopArtists(artists) {
     if (!artists || artists.length === 0) {
         return '<div class="empty-list">Нет данных</div>';
@@ -155,7 +148,6 @@ function renderTopArtists(artists) {
     `).join('');
 }
 
-// Отрисовка топ жанров
 function renderTopGenres(genres) {
     if (!genres || genres.length === 0) {
         return '<div class="empty-list">Нет данных</div>';
@@ -170,12 +162,10 @@ function renderTopGenres(genres) {
     `).join('');
 }
 
-// Глобальные переменные для графиков
 let playsMoodChart = null;
 let favoritesMoodChart = null;
 let activityChart = null;
 
-// Цвета для настроений
 const moodColors = {
     'energetic': '#ff4757',
     'энергичная': '#ff4757',
@@ -201,38 +191,31 @@ const moodLabels = {
     'other': '🎵 Другое'
 };
 
-// Обновление графиков
 function updateCharts(periodStats) {
-    // График прослушиваний по настроению
+    
     const playsMoodData = periodStats.plays_by_mood || {};
     updateMoodChart('playsMoodChart', playsMoodData, 'Прослушивания');
     
-    // График избранного по настроению
     const favoritesMoodData = periodStats.favorites_by_mood || {};
     updateMoodChart('favoritesMoodChart', favoritesMoodData, 'В избранном');
     
-    // График активности
     const activityData = periodStats.daily_activity || [];
     updateActivityChart(activityData);
     
-    // Обновление топ-списков
     updateTopLists(periodStats);
 }
 
-// Обновление графика настроения
 function updateMoodChart(canvasId, data, label) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
     
-    // Подготовка данных
     const moods = ['energetic', 'calm', 'happy', 'sad', 'romantic', 'other'];
     const values = moods.map(m => data[m] || 0);
     const labels = moods.map(m => moodLabels[m] || m);
     const colors = moods.map(m => moodColors[m] || '#7bed9f');
     
-    // Уничтожаем старый график если есть
     if (canvasId === 'playsMoodChart' && playsMoodChart) {
         playsMoodChart.destroy();
     } else if (canvasId === 'favoritesMoodChart' && favoritesMoodChart) {
@@ -284,7 +267,6 @@ function updateMoodChart(canvasId, data, label) {
     }
 }
 
-// Обновление графика активности
 function updateActivityChart(data) {
     const canvas = document.getElementById('activityChart');
     if (!canvas) return;
@@ -295,7 +277,6 @@ function updateActivityChart(data) {
         activityChart.destroy();
     }
     
-    // Подготовка данных
     const labels = data.map(d => d.date);
     const values = data.map(d => d.count);
     
@@ -346,7 +327,6 @@ function updateActivityChart(data) {
     });
 }
 
-// Обновление топ-списков
 function updateTopLists(periodStats) {
     const topArtistsList = document.getElementById('topArtistsList');
     const topGenresList = document.getElementById('topGenresList');
@@ -360,27 +340,23 @@ function updateTopLists(periodStats) {
     }
 }
 
-// Инициализация переключения периодов
 function initTabs(stats) {
     const tabs = document.querySelectorAll('.period-tab');
     
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Обновление активного класса
+            
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             
-            // Получение данных для периода
             const period = tab.dataset.period;
             const periodStats = stats[period] || stats.all_time;
             
-            // Обновление графиков
             updateCharts(periodStats);
         });
     });
 }
 
-// Вспомогательные функции
 function showLoading() {
     const container = document.getElementById('statsContent');
     if (container) {
@@ -402,7 +378,6 @@ function showError(message) {
     }
 }
 
-// Выход из системы
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user_id');
@@ -411,5 +386,4 @@ function logout() {
     window.location.href = '/login';
 }
 
-// Загрузка при старте
 document.addEventListener('DOMContentLoaded', loadStats);

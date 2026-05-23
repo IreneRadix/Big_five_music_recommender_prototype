@@ -1,4 +1,3 @@
-// history.js
 const STORAGE_KEY = 'recently_played_tracks';
 const MAX_HISTORY_ITEMS = 20;
 
@@ -47,7 +46,6 @@ function loadHistory() {
         const stored = localStorage.getItem(STORAGE_KEY);
         let tracks = stored ? JSON.parse(stored) : [];
         
-        // Проверяем, что это массив и сортируем по времени (сначала новые)
         if (!Array.isArray(tracks)) tracks = [];
         tracks.sort((a, b) => new Date(b.played_at) - new Date(a.played_at));
         
@@ -108,7 +106,6 @@ function removeFromHistory(trackId) {
         tracks = tracks.filter(t => t.id !== trackId);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks));
         
-        // Обновляем отображение
         loadHistory();
         showNotification('Трек удалён из истории', 'success');
     } catch (error) {
@@ -157,7 +154,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Добавляем стили для анимаций
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
@@ -171,5 +167,4 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Загрузка при старте
 document.addEventListener('DOMContentLoaded', loadHistory);

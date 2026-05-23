@@ -14,7 +14,6 @@ class PaginatedSurveyComponent {
         this.progressText = document.getElementById('progressText');
         this.resultDiv = document.getElementById('result');
         
-        // Вопросы для группы 1 (экстраверсия/открытость опыту)
         this.group1Questions = [
             "Я разговорчив(а)",
             "Мне свойственна оригинальность и творчество, у меня много новых идей",
@@ -27,7 +26,6 @@ class PaginatedSurveyComponent {
             "Я обычно молчалив(а)"
         ];
         
-        // Вопросы для группы 5 (открытость опыту/интеллект)
         this.group5Questions = [
             "Я изобретателен(на)",
             "Я уверена(а) в себе",
@@ -40,22 +38,18 @@ class PaginatedSurveyComponent {
             "Я разбираюсь в искусстве, музыке и/или литературе"
         ];
         
-        // Объединяем вопросы групп 1 и 5
         this.questions = [...this.group1Questions, ...this.group5Questions];
         
-        // Настройки пагинации
         this.questionsPerPage = 4;
         this.currentPage = 1;
         this.totalPages = Math.ceil(this.questions.length / this.questionsPerPage);
         
-        // Данные пользователя
         this.userData = {
             gender: null,
             age: null,
             answers: {}
         };
         
-        // Переменные для хранения сумм по группам
         this.groupSums = {
             group1: 0,
             group5: 0
@@ -80,7 +74,6 @@ class PaginatedSurveyComponent {
             const globalIndex = startIndex + localIndex;
             const savedAnswer = this.userData.answers[globalIndex];
             
-            // Определяем группу вопроса
             let groupNumber = globalIndex < this.group1Questions.length ? 1 : 5;
             
             return `
@@ -101,35 +94,28 @@ class PaginatedSurveyComponent {
             `;
         }).join('');
         
-        // Обновляем индикатор страницы
         this.pageIndicator.textContent = `Страница ${this.currentPage}/${this.totalPages}`;
         
-        // Обновляем состояние кнопок навигации
         this.prevBtn.disabled = this.currentPage === 1;
         this.nextBtn.disabled = this.currentPage === this.totalPages;
         
-        // Показываем/скрываем кнопку отправки
         this.submitBtn.classList.toggle('hidden', this.currentPage !== this.totalPages);
     }
     
     setupEventListeners() {
-        // Выбор пола
+        
         this.genderBtns.forEach(btn => {
             btn.addEventListener('click', (e) => this.handleGenderSelect(e));
         });
         
-        // Валидация возраста
         this.ageInput.addEventListener('input', () => this.validateAge());
         this.ageInput.addEventListener('blur', () => this.validateAge());
         
-        // Обработка оценок (делегирование событий)
         this.questionsContainer.addEventListener('click', (e) => this.handleRatingClick(e));
         
-        // Навигация
         this.prevBtn.addEventListener('click', () => this.goToPreviousPage());
         this.nextBtn.addEventListener('click', () => this.goToNextPage());
         
-        // Отправка формы
         this.form.addEventListener('submit', (e) => this.handleSubmit(e));
     }
     
@@ -174,40 +160,32 @@ class PaginatedSurveyComponent {
         const questionIndex = parseInt(questionItem.dataset.questionIndex);
         const value = parseInt(btn.dataset.value);
         
-        // Убираем выделение у всех кнопок в этом вопросе
         rating.querySelectorAll('.rating-btn').forEach(b => {
             b.classList.remove('selected');
         });
         
-        // Выделяем выбранную кнопку
         btn.classList.add('selected');
         
-        // Сохраняем ответ
         this.userData.answers[questionIndex] = value;
         
-        // Пересчитываем суммы по группам
         this.calculateGroupSums();
         
-        // Убираем ошибку
         document.getElementById(`questionError-${questionIndex}`).textContent = '';
         
-        // Обновляем прогресс
         this.updateProgress();
         
-        // Проверяем, все ли вопросы отвечены на текущей странице
         this.checkCurrentPageCompletion();
         
         console.log('Текущие суммы по группам:', this.groupSums);
     }
     
     calculateGroupSums() {
-        // Сброс сумм
+        
         this.groupSums = {
             group1: 0,
             group5: 0
         };
         
-        // Проходим по всем сохранённым ответам
         for (const [idx, answerValue] of Object.entries(this.userData.answers)) {
             const index = parseInt(idx);
             if (index < this.group1Questions.length) {
@@ -397,7 +375,6 @@ class PaginatedSurveyComponent {
     }
 }
 
-// Стили
 const additionalStyles = `
 .group-results {
     padding: 20px;

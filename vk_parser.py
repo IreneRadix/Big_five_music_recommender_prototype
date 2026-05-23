@@ -319,14 +319,49 @@ def get_vk_driver():
     return driver
 
 
-def get_liker_urls_for_one(driver, photo_url, album):
+def get_liker_urls_for_one(driver, photo_url, user_profile_url):
     """Получает список URL лайкнувших пользователей"""
     liker_urls = []
-    driver.get(album + r"?w=likes%2Fphoto" + extract_after_photo(photo_url))
-    scroll_to_bottom(driver)
-    likers = driver.find_elements(By.CLASS_NAME, "fans_fan_ph ")
-    for liker in likers:
-        liker_urls.append(liker.get_attribute('href'))
+    
+    # Извлекаем ID фото из URL
+    photo_id = extract_after_photo(photo_url)
+    if not photo_id:
+        print(f"Не удалось извлечь ID фото из URL: {photo_url}")
+        return liker_urls
+    
+    # Формируем URL БЕЗ двойного кодирования
+    # Используем незакодированный формат
+    likes_url = f"{user_profile_url}?w=likes/photo{photo_id}"
+    
+    print(f"Открываем URL лайков: {likes_url}")
+    driver.get(likes_url)
+    
+    # Драйвер сам правильно закодирует URL
+    time.sleep(3)
+    
+    try:
+        # Ждем загрузки
+        wait = WebDriverWait(driver, 10)
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "fans_fan_ph")))
+        
+        # Прокручиваем для загрузки всех лайков
+        scroll_to_bottom(driver)
+        time.sleep(2)
+        
+        # Собираем лайкеров
+        likers = driver.find_elements(By.CLASS_NAME, "fans_fan_ph")
+        for liker in likers:
+            href = liker.get_attribute('href')
+            if href:
+                liker_urls.append(href)
+                
+        print(f"Найдено лайков: {len(liker_urls)}")
+        
+    except TimeoutException:
+        print(f"Таймаут при загрузке лайков для {photo_url}")
+    except Exception as e:
+        print(f"Ошибка при получении лайков: {e}")
+    
     return liker_urls
 
 
@@ -435,7 +470,7 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         
         # Переходим на главную страницу VK
         driver.get('https://vk.com')
-        time.sleep(2)
+        time.sleep(1)
         driver.get(vk_url)
         # Получаем ссылки на музыку
         audio_links = driver.find_elements(By.XPATH, "//a[contains(@href, '/audios')]")
@@ -478,8 +513,10 @@ def parse_vk_data(vk_url: str, driver: webdriver.Chrome = None,
         
         # Получаем лайки на портретах
         friend_likes_per_portrait = []
+        friend_likes_per_portrait = []
         for url in portrait_urls:
-            liker_urls = get_liker_urls_for_one(driver, url, user_liks['avatars'])
+            # Передаем vk_url (URL профиля) вместо user_liks['avatars'] (URL альбома)
+            liker_urls = get_liker_urls_for_one(driver, url, vk_url)
             common_elements = set(liker_urls) & set(friends)
             friend_likes_per_portrait.append(len(common_elements))
         
